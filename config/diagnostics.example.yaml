@@ -1,0 +1,3 @@
+diagnostics:
+  enabled: false
+  max_evidence: 100

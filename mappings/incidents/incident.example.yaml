@@ -1,0 +1,12 @@
+schema_version: "1.0.0"
+entity: Incident
+source:
+  datasource: incident-db
+  table: INCIDENT_HISTORY
+fields:
+  id:
+    column: INCIDENT_ID
+  timestamp:
+    column: CREATED_AT
+  symptom:
+    column: ERROR_DESCRIPTION

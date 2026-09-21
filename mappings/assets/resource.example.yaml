@@ -1,0 +1,10 @@
+schema_version: "1.0.0"
+entity: Resource
+source:
+  datasource: incident-db
+  table: ASSETS
+fields:
+  id:
+    column: ASSET_ID
+  name:
+    column: NAME

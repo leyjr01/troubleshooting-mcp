@@ -1,0 +1,1 @@
+"""Canonical directed topology model."""

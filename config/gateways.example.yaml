@@ -1,0 +1,6 @@
+gateways:
+  - id: gateway-demo
+    environment_id: demo
+    adapter: threescale
+    enabled: false
+    datasource_id: runtime

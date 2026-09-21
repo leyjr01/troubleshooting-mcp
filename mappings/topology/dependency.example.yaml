@@ -1,0 +1,12 @@
+schema_version: "1.0.0"
+entity: Dependency
+source:
+  datasource: incident-db
+  table: RELATIONSHIPS
+fields:
+  id:
+    column: RELATIONSHIP_ID
+  source:
+    column: SOURCE_ID
+  target:
+    column: TARGET_ID

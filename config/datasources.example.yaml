@@ -1,0 +1,27 @@
+datasources:
+  - id: incident-db
+    environment_id: demo
+    type: database
+    provider: postgresql
+    enabled: false
+    connection:
+      host: database.example.invalid
+      port: 5432
+      database: incidents
+    credentials:
+      provider: kubernetes-secret
+      reference: incident-db
+      environment_id: demo
+    tls:
+      enabled: true
+      verify: true
+    usage: [incidents, evidence-correlation, rag]
+  - id: runtime
+    environment_id: demo
+    type: kubernetes
+    provider: kubernetes
+    enabled: false
+    connection:
+      host: cluster.example.invalid
+      port: 443
+    usage: [runtime, topology]

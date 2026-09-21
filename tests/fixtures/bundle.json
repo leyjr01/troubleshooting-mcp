@@ -1,0 +1,170 @@
+{
+  "schema_version": "1.0.0",
+  "environment": {
+    "id": "demo",
+    "name": "Synthetic demo",
+    "type": "test",
+    "cluster": "fake-cluster"
+  },
+  "incident": {
+    "id": "incident-1",
+    "timestamp": "2026-09-21T10:00:00Z",
+    "environment_id": "demo",
+    "symptom": "Synthetic timeout",
+    "services": [
+      "service-1"
+    ],
+    "source": {
+      "source_id": "fixture",
+      "environment_id": "demo",
+      "retrieved_at": "2026-09-21T10:00:00Z",
+      "source_reference": "fixture:runtime",
+      "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "evidence_ids": [
+      "evidence-1"
+    ],
+    "root_cause_finding_id": "finding-1",
+    "remediation_recommendation_ids": [
+      "recommendation-1"
+    ]
+  },
+  "topology": {
+    "environment_id": "demo",
+    "nodes": [
+      {
+        "id": "service-1",
+        "environment_id": "demo",
+        "kind": "service",
+        "name": "Synthetic service",
+        "provider": "fixture"
+      },
+      {
+        "id": "backend-1",
+        "environment_id": "demo",
+        "kind": "backend",
+        "name": "Synthetic backend",
+        "provider": "fixture"
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge-1",
+        "source": "service-1",
+        "target": "backend-1",
+        "relationship": "calls",
+        "source_of_information": {
+          "source_id": "fixture",
+          "environment_id": "demo",
+          "retrieved_at": "2026-09-21T10:00:00Z",
+          "source_reference": "fixture:runtime",
+          "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        },
+        "confidence": {
+          "level": "low",
+          "rationale": "Synthetic observation only",
+          "source_reliability": "fixture",
+          "temporal_relevance": "same window",
+          "topological_relevance": "direct node",
+          "historical_similarity": "not used",
+          "supporting_evidence": [],
+          "contradicting_evidence": []
+        }
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "evidence-1",
+      "environment_id": "demo",
+      "timestamp": "2026-09-21T10:00:00Z",
+      "source": {
+        "source_id": "fixture",
+        "environment_id": "demo",
+        "retrieved_at": "2026-09-21T10:00:00Z",
+        "source_reference": "fixture:runtime",
+        "content_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "type": "observation",
+      "resource_id": "backend-1",
+      "observation": "Synthetic response absent",
+      "raw_reference": "fixture:evidence-1",
+      "confidence": {
+        "level": "low",
+        "rationale": "Synthetic observation only",
+        "source_reliability": "fixture",
+        "temporal_relevance": "same window",
+        "topological_relevance": "direct node",
+        "historical_similarity": "not used",
+        "supporting_evidence": [],
+        "contradicting_evidence": []
+      }
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "hypothesis-1",
+      "environment_id": "demo",
+      "statement": "Synthetic candidate",
+      "supporting_evidence": [
+        "evidence-1"
+      ],
+      "confidence": {
+        "level": "low",
+        "rationale": "Synthetic observation only",
+        "source_reliability": "fixture",
+        "temporal_relevance": "same window",
+        "topological_relevance": "direct node",
+        "historical_similarity": "not used",
+        "supporting_evidence": [],
+        "contradicting_evidence": []
+      },
+      "status": "supported"
+    }
+  ],
+  "findings": [
+    {
+      "id": "finding-1",
+      "environment_id": "demo",
+      "title": "Synthetic finding",
+      "description": "Fixture interpretation",
+      "severity": "warning",
+      "evidence_ids": [
+        "evidence-1"
+      ],
+      "confidence": {
+        "level": "low",
+        "rationale": "Synthetic observation only",
+        "source_reliability": "fixture",
+        "temporal_relevance": "same window",
+        "topological_relevance": "direct node",
+        "historical_similarity": "not used",
+        "supporting_evidence": [],
+        "contradicting_evidence": []
+      },
+      "status": "supported"
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "recommendation-1",
+      "environment_id": "demo",
+      "description": "Human inspection only",
+      "finding_ids": [
+        "finding-1"
+      ],
+      "evidence_ids": [
+        "evidence-1"
+      ]
+    }
+  ],
+  "timeline": [
+    {
+      "timestamp": "2026-09-21T10:00:00Z",
+      "description": "Fixture observation",
+      "evidence_ids": [
+        "evidence-1"
+      ]
+    }
+  ]
+}

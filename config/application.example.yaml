@@ -1,0 +1,6 @@
+schema_version: "1.0.0"
+application:
+  environment: demo
+  read_only: true
+  timeout_seconds: 10
+  max_payload_bytes: 65536

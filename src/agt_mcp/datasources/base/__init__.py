@@ -1,0 +1,1 @@
+"""DataSourceAdapter contract."""

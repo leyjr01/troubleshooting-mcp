@@ -1,0 +1,12 @@
+# Architecture Decision Records
+
+- [ADR-0001 — Programming language and runtime](0001-programming-language-and-runtime.md)
+- [ADR-0002 — Modular adapter architecture](0002-modular-adapter-architecture.md)
+- [ADR-0003 — Canonical domain model](0003-canonical-domain-model.md)
+- [ADR-0004 — Configuration and secret separation](0004-configuration-and-secret-separation.md)
+- [ADR-0005 — Evidence-first troubleshooting](0005-evidence-first-troubleshooting.md)
+- [ADR-0006 — Gateway abstraction](0006-gateway-abstraction.md)
+- [ADR-0007 — Data source abstraction](0007-data-source-abstraction.md)
+- [ADR-0008 — Confidence model](0008-confidence-model.md)
+- [ADR-0009 — RAG and topology separation](0009-rag-and-topology-separation.md)
+- [ADR-0010 — Read-only security model](0010-read-only-security-model.md)

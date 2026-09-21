@@ -1,0 +1,1 @@
+"""GatewayAdapter contract."""

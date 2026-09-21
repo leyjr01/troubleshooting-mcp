@@ -1,0 +1,4 @@
+rag:
+  enabled: false
+  repository_ids: []
+  max_results: 10
