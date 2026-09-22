@@ -4,7 +4,8 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, StringConstraints, model_validator
 
-from agt_mcp.core.models import Identifier, Model
+from agt_mcp.configuration.server import MCPConfig
+from agt_mcp.core.models import Environment, Identifier, Model
 from agt_mcp.core.operations import Operation
 from agt_mcp.credentials.providers import CredentialReference
 
@@ -25,7 +26,9 @@ class ConnectionConfig(Model):
 class DataSourceConfig(Model):
     id: Identifier
     environment_id: Identifier
-    type: Literal["git", "database", "vector", "search", "metrics", "logs", "rest", "kubernetes"]
+    type: Literal[
+        "git", "database", "vector", "search", "metrics", "logs", "rest", "kubernetes", "memory"
+    ]
     provider: Identifier
     enabled: bool = False
     connection: ConnectionConfig
@@ -74,9 +77,13 @@ class Configuration(Model):
     gateways: tuple[GatewayConfig, ...] = ()
     rag: RAGConfig = RAGConfig()
     diagnostics: DiagnosticsConfig = DiagnosticsConfig()
+    mcp: MCPConfig = MCPConfig()
+    environments: tuple[Environment, ...] = ()
 
     @model_validator(mode="after")
     def references(self) -> Self:
+        if len({environment.id for environment in self.environments}) != len(self.environments):
+            raise ValueError("duplicate environment")
         sources = {source.id: source for source in self.datasources}
         if len(sources) != len(self.datasources):
             raise ValueError("duplicate datasource")

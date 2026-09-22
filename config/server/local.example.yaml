@@ -1,0 +1,45 @@
+application:
+  environment: demo
+  read_only: true
+  timeout_seconds: 10
+environments:
+  - id: demo
+    name: Synthetic local environment
+    type: development
+    cluster: memory-cluster
+mcp:
+  server:
+    name: API Gateway Troubleshooting MCP
+    transport: stdio
+    host: 127.0.0.1
+    port: 8000
+    log_level: INFO
+    request_timeout_seconds: 30
+    authorization:
+      mode: local-read-only
+      principal: local-client
+      environment_ids: [demo]
+      permissions:
+        - system.read
+        - capability.read
+        - environment.read
+        - gateway.read
+        - gateway.discover
+        - datasource.read
+        - datasource.health
+datasources:
+  - id: memory-source
+    environment_id: demo
+    type: memory
+    provider: in-memory
+    enabled: true
+    connection:
+      host: memory.invalid
+      port: 443
+    usage: [metadata]
+gateways:
+  - id: gateway-01
+    environment_id: demo
+    adapter: in-memory
+    enabled: true
+    datasource_id: memory-source

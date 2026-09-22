@@ -1,11 +1,13 @@
 # Future MCP tool catalog
 
-Todas as ferramentas são PLANNED, read-only e não expostas por servidor nesta sprint.
+Catálogo conceitual criado na Sprint 0. Na Sprint 1, discover_gateway foi exposta
+com adapter em memória; as demais ferramentas abaixo continuam planejadas.
+As sete tools atuais estão documentadas no [runtime MCP](mcp-runtime.md).
 Inputs comuns: identidade autenticada pela futura sessão, environment_id, request_id,
 correlation_id e deadline/limites. O cliente não escolhe suas próprias permissões.
 Outputs são canônicos e passam sanitização/ACL; erros usam taxonomia segura.
 Permissões abaixo são scopes propostos do transporte, a mapear à allowlist interna;
-não são roles Kubernetes já criadas. Nenhum MCP SDK instalado.
+não são roles Kubernetes já criadas. FastMCP é restrito à interface MCP (ADR-0011).
 
 ## discover_environment
 

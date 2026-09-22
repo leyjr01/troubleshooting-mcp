@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Vendor-neutral evidence-first troubleshooting contracts"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["pydantic>=2.10,<3", "PyYAML>=6,<7"]
+dependencies = ["pydantic>=2.10,<3", "PyYAML>=6,<7", "fastmcp==4.0.5"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<9", "pytest-cov>=6,<8", "ruff>=0.9,<1", "mypy>=1.14,<2", "types-PyYAML>=6,<7", "bandit>=1.8,<2"]
@@ -22,7 +22,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
-markers = ["unit: isolated local tests", "contract: adapter contract tests", "integration: local composition only", "scenario: future diagnostic scenarios"]
+markers = ["unit: isolated local tests", "contract: adapter contract tests", "integration: local composition only", "scenario: future diagnostic scenarios", "local_transport: numeric loopback MCP transport tests"]
 
 [tool.coverage.run]
 source = ["agt_mcp"]

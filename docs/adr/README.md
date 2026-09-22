@@ -10,3 +10,4 @@
 - [ADR-0008 — Confidence model](0008-confidence-model.md)
 - [ADR-0009 — RAG and topology separation](0009-rag-and-topology-separation.md)
 - [ADR-0010 — Read-only security model](0010-read-only-security-model.md)
+- [ADR-0011 — FastMCP as MCP Server Framework](0011-fastmcp-as-mcp-server-framework.md)

@@ -1,5 +1,8 @@
 # Arquitetura e limites
 
+Evolução na Sprint 1: transporte FastMCP e application services locais implementados;
+veja [runtime MCP](mcp-runtime.md) e ADR-0011. Engines de diagnóstico permanecem futuros.
+
 Arquitetura hexagonal modular: core contém conceitos e portas usam modelos
 canônicos. Application engines futuros orquestram portas, sem conhecer driver,
 URL, SQL, kubectl ou particularidades de 3scale. O transporte MCP traduz entradas/
@@ -34,8 +37,8 @@ Python 3.12, Pydantic 2 para validação/JSON Schema, PyYAML com SafeLoader pró
 para configuração, biblioteca padrão para async/logging. Pytest/coverage, Ruff,
 mypy/types-PyYAML e Bandit são ferramentas de desenvolvimento.
 Não adicionar pandas, ORM, SDK Kubernetes, clientes HTTP ou bancos nesta sprint.
-MCP Python SDK foi avaliado: transporte será isolado em mcp, dependência será
-escolhida/pinada ao implementar protocolo, não instalada sem uso.
+Na Sprint 0, MCP Python SDK foi avaliado e adiado. Na Sprint 1, FastMCP 4.0.5
+foi escolhido e fixado, com seus imports restritos ao pacote mcp (ADR-0011).
 Referências consultadas em 2026-09-21:
 [Pydantic models](https://docs.pydantic.dev/latest/concepts/models/) e
 [MCP Python SDK](https://github.com/modelcontextprotocol/python-sdk).

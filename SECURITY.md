@@ -7,7 +7,11 @@ Gateway/resource de tipo Secret revela identidade autorizada, nunca valor.
 Least privilege por ambiente: RBAC futuro de get/list/watch apenas em recursos
 necessários; logs requerem autorização própria. Banco com usuário SELECT e
 schema allowlist; não credenciais administrativas. Sem kubeconfig global herdado
-sem escolha explícita. Nenhum acesso externo existe nesta sprint.
+sem escolha explícita. Nenhum acesso externo produtivo existe. A Sprint 1 expõe
+STDIO e HTTP loopback com autorização local explícita, deny-all por padrão e
+validação Host/Origin. Esse modo confia no usuário local do sistema operacional;
+não é autenticação remota. Não expor por proxy/túnel.
+Veja [runtime MCP](docs/architecture/mcp-runtime.md).
 
 No secrets in Git: referências em YAML; valores apenas pelo CredentialProvider,
 scoped e allowlisted. Não logar payload, Authorization headers, cookies, passwords,

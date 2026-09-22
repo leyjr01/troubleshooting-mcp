@@ -1,1 +1,1 @@
-"""Reserved for the transport adapter in a future sprint; see tool catalog."""
+"""FastMCP interface, composition root and local STDIO/HTTP transport boundary."""

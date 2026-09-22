@@ -1,8 +1,9 @@
 # API Gateway Troubleshooting MCP
 
 Fundação modular para diagnóstico de gateways. Primeiro alvo futuro: Red Hat
-3scale/APIcast em OpenShift. Sprint 0 entrega contratos, modelos, configuração
-validada, segurança local e governança. Não há servidor MCP ou integração ativa.
+3scale/APIcast em OpenShift. Sprint 1 entrega um servidor FastMCP executável em
+STDIO/HTTP local, com sete tools e adapters em memória sobre os contratos da Sprint 0.
+Não há integração ativa com ambientes externos.
 
 ## Goals e non-goals
 
@@ -13,7 +14,7 @@ ou executar remediação. Diagnóstico, RAG e correlação reais ficam para spri
 ## Architecture
 
 ```text
-MCP client -> future MCP transport -> application engines
+MCP client -> FastMCP interface -> application services
   query / diagnosis / knowledge -> evidence correlation
   topology / mapping / retrieval -> read-only data access boundary
   DataSourceAdapter | GatewayAdapter | CredentialProvider
@@ -42,7 +43,8 @@ Python 3.12+ e Git. No PowerShell, na raiz do checkout:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip install -r requirements.lock
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]" -c requirements.lock
 .\.venv\Scripts\python.exe -m agt_mcp --help
 ```
 
@@ -62,19 +64,36 @@ python -m pip check
 
 CLI retorna 0 no sucesso, 1 para configuração/mapping inválido, 2 para argumentos
 inválidos. Não imprime valores de configuração nem resolve credenciais.
-Todos os exemplos podem ser validados offline; fontes permanecem desabilitadas.
+Os cinco exemplos da Sprint 0 podem ser validados offline; fontes permanecem desabilitadas.
 O comando sem arquivos valida defaults. Configuração de ambiente é fornecida
 com --environment-file; veja [configuração](docs/architecture/configuration.md).
+
+Para reproduzir as versões resolvidas, instale `requirements.lock` e use-o como
+constraints na instalação editável, conforme [runtime MCP](docs/architecture/mcp-runtime.md).
+
+Iniciar o servidor com dados sintéticos declarados no exemplo:
+
+```bash
+python -m agt_mcp serve --file config/server/local.example.yaml
+python -m agt_mcp serve --file config/server/local.example.yaml --transport http --port 8000
+```
+
+STDIO é o padrão; HTTP atende em `http://127.0.0.1:8000/mcp`. Os comandos de
+validação continuam offline. Somente o exemplo local ativa adapters em memória.
+Autorização padrão deny-all; o exemplo concede leitura ao cliente do sistema
+operacional local. Nenhum modo de acesso remoto está disponível nesta sprint.
 
 ## Testing e current status
 
 Fixtures são sintéticas, nenhum teste exige rede. Coverage mínimo configurado
 em 80%, com branches e relatório de linhas; cobertura não prova segurança produtiva.
-Testes de integração compõem componentes locais. Contratos usam fakes, nunca
-drivers reais. A matriz de cenários descreve expectativas futuras, sem diagnóstico
+Testes de integração incluem cliente MCP em memória, subprocesso STDIO e HTTP
+em loopback. Contratos usam fakes, nunca drivers reais. A matriz de cenários
+descreve expectativas futuras, sem diagnóstico
 simulado apresentado como funcionalidade pronta.
 [Desenvolvimento](docs/development/testing.md) descreve os checks e suas limitações.
 [Validação da Sprint 0](docs/development/sprint-0-validation.md) registra os resultados.
+[Validação da Sprint 1](docs/development/sprint-1-validation.md) registra os checks do servidor.
 
 ## Security principles
 
@@ -87,10 +106,10 @@ Não resolve prompt injection por semântica: não há chamada ao modelo.
 ## Roadmap
 
 1. Sprint 0: fundação, contratos, modelos e governança.
-2. Sprint 1: primeiro adapter 3scale/runtime read-only com limites e RBAC verificados.
-3. Sprints seguintes: descoberta, diagnóstico determinístico, evidências e cenários.
+2. Sprint 1: FastMCP, application services, autorização local e adapters em memória.
+3. Sprints seguintes: adapter 3scale/runtime read-only, descoberta e diagnóstico determinístico.
 4. Conhecimento federado, mappings concretos e RAG com ACL/provenance.
-5. Transporte MCP autenticado, observabilidade externa e hardening operacional.
+5. Autenticação corporativa MCP, observabilidade externa e hardening operacional.
 
 Todos os textos do projeto são UTF-8. No Windows PowerShell use
 Get-Content -Encoding UTF8 para leitura explícita.

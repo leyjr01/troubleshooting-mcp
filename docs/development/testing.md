@@ -5,8 +5,10 @@ sanitização, política/timeout e erros. Contract: fakes async dos adapters, li
 capabilities, ausência de escrita. Integration: CLI e composição offline.
 Scenario: documentação dos 12 casos futuros; não são testes de diagnóstico já implementado.
 
-Suíte padrão impede socket real por fixture autouse. Testes não precisam de
-infraestrutura e não chamam LLM. Fixtures sanitizadas em tests/fixtures.
+Suíte padrão bloqueia rede externa por fixture autouse; somente testes marcados
+local_transport permitem resolução de 127.0.0.1 para o HTTP local da Sprint 1.
+Também há subprocessos STDIO. Testes não precisam de infraestrutura externa e
+não chamam LLM. Fixtures sanitizadas em tests/fixtures.
 Coverage branch mínimo 80%; métodos abstratos não são funcionalidade executável.
 Documentação validada por seções/links/ADRs/catálogo; isso não avalia correção
 semântica automaticamente. Bandit analisa src; não substituir revisão humana.
