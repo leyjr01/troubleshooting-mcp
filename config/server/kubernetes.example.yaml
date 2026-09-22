@@ -1,0 +1,58 @@
+# Opt-in example only. Replace cluster/context/namespace for an existing reader identity.
+application:
+  environment: dev
+  max_payload_bytes: 1048576
+environments:
+  - id: dev
+    name: Development Kubernetes
+    type: development
+    cluster: dev-cluster
+    namespace: example
+    enabled: true
+    runtime:
+      provider: kubernetes
+      authentication:
+        mode: kubeconfig
+        kubeconfig: ~/.kube/config
+        context: dev
+        cluster: dev-cluster
+      discovery:
+        namespaces:
+          include: [example]
+          exclude: []
+        cluster_scoped: false
+        secrets:
+          mode: referenced-metadata-only
+        limits:
+          max_namespaces: 5
+          max_resources_per_type: 100
+          max_events: 50
+          max_relationships: 1000
+          max_topology_nodes: 500
+          max_topology_depth: 3
+          max_configmap_bytes: 16384
+          max_response_bytes: 1048576
+          page_size: 50
+      timeout_seconds: 20
+mcp:
+  server:
+    enabled_tools:
+      - system_health
+      - list_capabilities
+      - list_environments
+      - discover_environment
+      - inspect_resource
+      - inspect_events
+      - find_related_resources
+      - get_resource_topology
+    authorization:
+      mode: local-read-only
+      environment_ids: [dev]
+      permissions:
+        - system.read
+        - capability.read
+        - environment.read
+        - runtime.discover
+        - resource.read
+        - event.read
+        - topology.read

@@ -4,9 +4,11 @@ from agt_mcp.configuration.models import Configuration
 from agt_mcp.core.errors import ConfigurationError
 from agt_mcp.core.models import Gateway
 from agt_mcp.datasources.base.adapter import DataSourceAdapter
+from agt_mcp.datasources.kubernetes.adapter import KubernetesRuntimeAdapter
 from agt_mcp.datasources.memory import InMemoryDataSourceAdapter
 from agt_mcp.gateways.base.adapter import GatewayAdapter
 from agt_mcp.gateways.memory import InMemoryGatewayAdapter
+from agt_mcp.services.discovery import RuntimeDiscoveryService
 from agt_mcp.services.registry import AdapterEntry, AdapterRegistry
 from agt_mcp.services.runtime import Runtime
 
@@ -56,4 +58,12 @@ def build_runtime(configuration: Configuration) -> Runtime:
                 adapter=InMemoryGatewayAdapter(model),
             )
         )
-    return Runtime(configuration, gateways, datasources)
+    runtime = Runtime(configuration, gateways, datasources)
+    runtime.discovery = RuntimeDiscoveryService(
+        {
+            environment.id: KubernetesRuntimeAdapter(environment)
+            for environment in configuration.environments
+            if environment.enabled and environment.runtime is not None
+        }
+    )
+    return runtime

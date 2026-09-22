@@ -4,7 +4,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from agt_mcp.core.execution import Capability, ToolName
+from agt_mcp.core.execution import LEGACY_TOOLS, Capability, ToolName
 from agt_mcp.core.models import Identifier, Model, Text
 
 
@@ -23,7 +23,7 @@ class ServerConfig(Model):
     log_level: Literal["INFO", "WARNING", "ERROR"] = "INFO"
     request_timeout_seconds: float = Field(default=30, gt=0, le=300)
     authorization: AuthorizationConfig = AuthorizationConfig()
-    enabled_tools: frozenset[ToolName] = frozenset(ToolName)
+    enabled_tools: frozenset[ToolName] = LEGACY_TOOLS
 
 
 class MCPConfig(Model):

@@ -9,6 +9,16 @@ from agt_mcp.core.models import Confidence, Identifier, Model, Provenance, Resou
 
 
 class Relationship(StrEnum):
+    OWNS = "owns"
+    HAS_ENDPOINTSLICE = "has_endpointslice"
+    HAS_ENDPOINT = "has_endpoint"
+    TARGETS = "targets"
+    REFERENCES_CONFIGMAP = "references_configmap"
+    # This enum value is a relationship label, not a credential.
+    REFERENCES_SECRET = "references_secret"  # nosec B105
+    MOUNTS = "mounts"
+    BOUND_TO = "bound_to"
+    USES_SERVICE_ACCOUNT = "uses_service_account"
     CALLS = "calls"
     ROUTES_TO = "routes_to"
     DEPENDS_ON = "depends_on"

@@ -66,7 +66,7 @@ def register_tools(server: FastMCP, dispatcher: Dispatcher) -> None:
     }
     settings = dispatcher.runtime.configuration.mcp.server
     for definition in TOOL_DEFINITIONS:
-        if definition.name in settings.enabled_tools:
+        if definition.name in settings.enabled_tools and definition.name in functions:
             server.tool(
                 name=definition.name.value,
                 description=definition.description,

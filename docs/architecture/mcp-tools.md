@@ -1,8 +1,12 @@
 # Future MCP tool catalog
 
-Catálogo conceitual criado na Sprint 0. Na Sprint 1, discover_gateway foi exposta
-com adapter em memória; as demais ferramentas abaixo continuam planejadas.
-As sete tools atuais estão documentadas no [runtime MCP](mcp-runtime.md).
+Catálogo conceitual criado na Sprint 0. A Sprint 1 implementou sete tools locais,
+incluindo discover_gateway em memória: veja [runtime MCP](mcp-runtime.md).
+A Sprint 2 implementa discover_environment, inspect_resource, inspect_events,
+find_related_resources e get_resource_topology: os contratos executáveis,
+permissions e limites estão em [runtime discovery](runtime-discovery.md).
+As demais entradas continuam planejadas; scopes com dois-pontos abaixo são
+conceituais, não substituem as permissions internas do contrato executável.
 Inputs comuns: identidade autenticada pela futura sessão, environment_id, request_id,
 correlation_id e deadline/limites. O cliente não escolhe suas próprias permissões.
 Outputs são canônicos e passam sanitização/ACL; erros usam taxonomia segura.

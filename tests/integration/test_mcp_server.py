@@ -8,7 +8,7 @@ from fastmcp import Client
 
 from agt_mcp.configuration.loader import load_configuration
 from agt_mcp.configuration.models import Configuration
-from agt_mcp.core.execution import ToolName
+from agt_mcp.core.execution import LEGACY_TOOLS, ToolName
 from agt_mcp.mcp.bootstrap import build_runtime
 from agt_mcp.mcp.server import create_server
 
@@ -26,10 +26,10 @@ def test_mcp_seven_tools_and_safe_results(caplog):
     async def scenario():
         async with Client(create_server(runtime)) as client:
             tools = await client.list_tools()
-            assert {tool.name for tool in tools} == set(ToolName)
+            assert {tool.name for tool in tools} == LEGACY_TOOLS
             assert all(tool.annotations.read_only_hint for tool in tools)
             assert all(tool.output_schema for tool in tools)
-            for name in ToolName:
+            for name in LEGACY_TOOLS:
                 args = {"correlation_id": correlation}
                 if name == ToolName.DISCOVER_GATEWAY:
                     args["gateway_id"] = "gateway-01"

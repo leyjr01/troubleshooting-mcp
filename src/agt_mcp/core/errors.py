@@ -4,6 +4,7 @@ from enum import StrEnum
 
 
 class ErrorCode(StrEnum):
+    RESOURCE_NOT_FOUND = "resource_not_found"
     CONFIGURATION = "configuration"
     AUTHENTICATION = "authentication"
     AUTHORIZATION = "authorization"
@@ -22,6 +23,10 @@ class AGTError(Exception):
 
     def __init__(self) -> None:
         super().__init__(self.code.value)
+
+
+class ResourceNotFound(AGTError):
+    code = ErrorCode.RESOURCE_NOT_FOUND
 
 
 class ConfigurationError(AGTError):

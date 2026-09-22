@@ -17,10 +17,18 @@ from agt_mcp.core.errors import (
     TimeoutError,
     UnsupportedCapabilityError,
 )
-from agt_mcp.core.execution import TOOL_DEFINITIONS, Capability, ExecutionContext, ToolName
+from agt_mcp.core.execution import (
+    RUNTIME_TOOLS,
+    TOOL_DEFINITIONS,
+    Capability,
+    ExecutionContext,
+    ToolName,
+)
 from agt_mcp.core.operations import Operation, OperationContext
+from agt_mcp.core.runtime import RuntimeQuery
 from agt_mcp.datasources.base.adapter import DataSourceAdapter
 from agt_mcp.gateways.base.adapter import GatewayAdapter
+from agt_mcp.services.discovery import RuntimeDiscoveryService
 from agt_mcp.services.registry import AdapterRegistry
 
 
@@ -36,6 +44,7 @@ class Runtime:
         self.datasources = datasources
         self.started_at: float | None = None
         self.ready = False
+        self.discovery = RuntimeDiscoveryService({})
 
     @asynccontextmanager
     async def lifespan(self) -> AsyncIterator[None]:
@@ -44,6 +53,7 @@ class Runtime:
         self.gateways.seal()
         self.datasources.seal()
         async with AsyncExitStack() as stack:
+            stack.push_async_callback(self.discovery.close)
             adapters: list[tuple[str, GatewayAdapter | DataSourceAdapter]] = [
                 (entry.environment_id, entry.adapter) for entry in self.gateways.entries()
             ]
@@ -93,6 +103,8 @@ class Runtime:
         available: set[Capability] = set()
         for tool in TOOL_DEFINITIONS:
             if tool.name in settings.enabled_tools:
+                if tool.name in RUNTIME_TOOLS and environment_id not in self.discovery.adapters:
+                    continue
                 available.update(tool.required_capabilities)
         if not any(
             Operation.DISCOVER_GATEWAY in e.adapter.capabilities()
@@ -111,7 +123,10 @@ class Runtime:
         return frozenset(available) & settings.authorization.permissions
 
     async def execute(
-        self, context: ExecutionContext, resource_id: str | None = None
+        self,
+        context: ExecutionContext,
+        resource_id: str | None = None,
+        runtime_query: RuntimeQuery | None = None,
     ) -> dict[str, JsonValue]:
         self.authorize(context)
         if not self.ready:
@@ -121,6 +136,8 @@ class Runtime:
             raise TimeoutError()
         try:
             async with asyncio.timeout(remaining):
+                if context.operation in RUNTIME_TOOLS:
+                    return await self.discovery.execute(context, runtime_query or RuntimeQuery())
                 return await self._dispatch(context, resource_id)
         except builtins.TimeoutError:
             raise TimeoutError() from None

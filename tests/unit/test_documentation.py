@@ -28,7 +28,7 @@ def test_local_documentation_links():
 
 def test_adr_completeness():
     adrs = sorted((ROOT / "docs/adr").glob("[0-9]*.md"))
-    assert len(adrs) == 11
+    assert len(adrs) == 13
     for index, path in enumerate(adrs, 1):
         assert path.name.startswith(f"{index:04d}-")
         text = path.read_text(encoding="utf-8")
@@ -74,6 +74,7 @@ def test_core_dependency_direction():
         "agt_mcp.mcp",
         "agt_mcp.rag",
         "kubernetes",
+        "fastmcp",
         "requests",
         "httpx",
     )

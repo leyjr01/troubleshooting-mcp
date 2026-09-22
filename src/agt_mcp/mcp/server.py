@@ -8,6 +8,7 @@ from fastmcp import FastMCP
 from agt_mcp import __version__
 from agt_mcp.mcp.dispatch import Dispatcher
 from agt_mcp.mcp.tools.inventory import register_tools
+from agt_mcp.mcp.tools.runtime import register_runtime_tools
 from agt_mcp.services.runtime import Runtime
 
 
@@ -26,4 +27,5 @@ def create_server(runtime: Runtime) -> FastMCP:
         tasks=False,
     )
     register_tools(server, Dispatcher(runtime))
+    register_runtime_tools(server, Dispatcher(runtime))
     return server

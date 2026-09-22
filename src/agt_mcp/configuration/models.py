@@ -4,8 +4,9 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, StringConstraints, model_validator
 
+from agt_mcp.configuration.runtime import RuntimeEnvironment
 from agt_mcp.configuration.server import MCPConfig
-from agt_mcp.core.models import Environment, Identifier, Model
+from agt_mcp.core.models import Identifier, Model
 from agt_mcp.core.operations import Operation
 from agt_mcp.credentials.providers import CredentialReference
 
@@ -78,7 +79,7 @@ class Configuration(Model):
     rag: RAGConfig = RAGConfig()
     diagnostics: DiagnosticsConfig = DiagnosticsConfig()
     mcp: MCPConfig = MCPConfig()
-    environments: tuple[Environment, ...] = ()
+    environments: tuple[RuntimeEnvironment, ...] = ()
 
     @model_validator(mode="after")
     def references(self) -> Self:

@@ -10,6 +10,10 @@ from agt_mcp.core.operations import OperationContext
 
 
 class Capability(StrEnum):
+    RUNTIME_DISCOVER = "runtime.discover"
+    RESOURCE_READ = "resource.read"
+    EVENT_READ = "event.read"
+    TOPOLOGY_READ = "topology.read"
     SYSTEM_READ = "system.read"
     CAPABILITY_READ = "capability.read"
     ENVIRONMENT_READ = "environment.read"
@@ -20,6 +24,11 @@ class Capability(StrEnum):
 
 
 class ToolName(StrEnum):
+    DISCOVER_ENVIRONMENT = "discover_environment"
+    INSPECT_RESOURCE = "inspect_resource"
+    INSPECT_EVENTS = "inspect_events"
+    FIND_RELATED_RESOURCES = "find_related_resources"
+    GET_RESOURCE_TOPOLOGY = "get_resource_topology"
     SYSTEM_HEALTH = "system_health"
     LIST_CAPABILITIES = "list_capabilities"
     LIST_ENVIRONMENTS = "list_environments"
@@ -47,7 +56,18 @@ class ToolDefinition(Model):
     version: Literal["1.0.0"] = "1.0.0"
 
 
-TOOL_DEFINITIONS = (
+RUNTIME_TOOLS = frozenset(
+    {
+        ToolName.DISCOVER_ENVIRONMENT,
+        ToolName.INSPECT_RESOURCE,
+        ToolName.INSPECT_EVENTS,
+        ToolName.FIND_RELATED_RESOURCES,
+        ToolName.GET_RESOURCE_TOPOLOGY,
+    }
+)
+LEGACY_TOOLS = frozenset(ToolName) - RUNTIME_TOOLS
+
+TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
     ToolDefinition(
         name=ToolName.SYSTEM_HEALTH,
         description="Health of this MCP runtime only",
@@ -97,4 +117,41 @@ TOOL_DEFINITIONS = (
         required_capabilities=frozenset({Capability.GATEWAY_DISCOVER}),
         required_permissions=frozenset({Capability.GATEWAY_DISCOVER}),
     ),
+)
+
+TOOL_DEFINITIONS += tuple(
+    ToolDefinition(
+        name=name,
+        description=description,
+        category="runtime",
+        required_capabilities=frozenset({capability}),
+        required_permissions=frozenset({capability}),
+    )
+    for name, description, capability in (
+        (
+            ToolName.DISCOVER_ENVIRONMENT,
+            "Discover bounded runtime inventory summary",
+            Capability.RUNTIME_DISCOVER,
+        ),
+        (
+            ToolName.INSPECT_RESOURCE,
+            "Inspect a canonical runtime resource",
+            Capability.RESOURCE_READ,
+        ),
+        (
+            ToolName.INSPECT_EVENTS,
+            "Inspect bounded related Event observations",
+            Capability.EVENT_READ,
+        ),
+        (
+            ToolName.FIND_RELATED_RESOURCES,
+            "Find neighbors in observed runtime topology",
+            Capability.TOPOLOGY_READ,
+        ),
+        (
+            ToolName.GET_RESOURCE_TOPOLOGY,
+            "Return a bounded runtime subgraph",
+            Capability.TOPOLOGY_READ,
+        ),
+    )
 )

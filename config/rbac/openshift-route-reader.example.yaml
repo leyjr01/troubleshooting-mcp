@@ -1,0 +1,10 @@
+# Optional only when OpenShift Route discovery is enabled.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: agt-route-reader
+  namespace: example
+rules:
+  - apiGroups: [route.openshift.io]
+    resources: [routes]
+    verbs: [get, list]

@@ -13,7 +13,7 @@ fontes não confiáveis; segredo -> consumidor autorizado; resultado -> sanitiza
 | oversized log payload | Limite de bytes no sanitizer/context | Limitar streaming antes de carregar driver |
 | SQL injection | Query lógica e mapping sem expressões | Binding de parâmetros e allowlist de tabelas |
 | shell injection | Nenhum subprocess de shell no produto | Preferir APIs e argv fixos; não interpolar comandos |
-| SSRF | Nenhum cliente de rede concreto | Hosts/redirects/resolução IP/egress allowlisted por ambiente |
+| SSRF | SDK Kubernetes vinculado ao kubeconfig/contexto configurado, TLS obrigatório | Restrição de egress por operador; configuração é entrada privilegiada |
 | privilege escalation | ReadOnlyPolicy confere principal, ambiente e operações | Autenticação transport/RBAC Kubernetes/DB least privilege |
 | unsafe remediation | Recommendation executable=false | Executor separado com aprovação e auditoria, fora do escopo |
 | cross-environment data leakage | Contextos, config e bundle validam escopo | ACL em retrieval/cache/pooling e testes de integração reais |
@@ -21,3 +21,19 @@ fontes não confiáveis; segredo -> consumidor autorizado; resultado -> sanitiza
 Bandit e testes são checks de desenvolvimento, não pentest nem garantia de
 segurança produtiva. Limites de tamanho não substituem limites no driver.
 Conteúdo sanitizado continua não confiável; não elevar a instrução.
+
+## Sprint 2 runtime boundary
+
+O SDK Kubernetes assíncrono usa configuração por ambiente, namespace allowlist,
+deadline por chamada e leitura HTTP limitada antes do parse. API errors não
+expõem bodies. Tokens, TLS keys, ConfigMap data, annotations, mensagens de Event
+e specs arbitrários de CR não cruzam a projeção canônica. Kubeconfig exec e
+auth-provider plugins são recusados; nenhuma credencial local foi acessada nos testes.
+Secrets não são consultados. O grafo mantém apenas referências provenientes de
+workloads/Ingress. ConfigMap get/list recebe conteúdo na fronteira HTTP, que é
+descartado; remover esse RBAC é permitido e gera descoberta parcial.
+
+As cinco tools novas têm permissions internas e testes pelo cliente MCP real.
+O SDK é exercitado com respostas sintéticas, sem validação contra um cluster
+real. RBAC efetivo, configuração confiável e restrições de rede continuam sendo
+responsabilidade operacional. Veja [RBAC runtime](kubernetes-rbac.md).

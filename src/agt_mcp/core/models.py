@@ -3,7 +3,7 @@
 from enum import StrEnum
 from typing import Annotated, Literal
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, JsonValue, StringConstraints
 
 Identifier = Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9][A-Za-z0-9_.:/-]{0,127}$")]
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=16384)]
@@ -49,6 +49,24 @@ class Environment(Model):
 
 
 class ResourceKind(StrEnum):
+    DEPLOYMENT = "deployment"
+    REPLICASET = "replicaset"
+    STATEFULSET = "statefulset"
+    DAEMONSET = "daemonset"
+    ENDPOINTSLICE = "endpointslice"
+    ENDPOINT = "endpoint"
+    CONFIGMAP = "configmap"
+    PVC = "persistentvolumeclaim"
+    PV = "persistentvolume"
+    SERVICE_ACCOUNT = "serviceaccount"
+    EVENT = "event"
+    INGRESS = "ingress"
+    NETWORK_POLICY = "networkpolicy"
+    NAMESPACE = "namespace"
+    CRD = "customresourcedefinition"
+    CUSTOM_RESOURCE = "customresource"
+    # This enum value is a resource kind, not a credential.
+    SECRET_REFERENCE = "secret_reference"  # nosec B105
     GATEWAY = "gateway"
     API = "api"
     PRODUCT = "product"
@@ -66,6 +84,16 @@ class ResourceKind(StrEnum):
     NETWORK = "network"
 
 
+class ResourceReference(Model):
+    environment_id: Identifier
+    cluster: Identifier
+    namespace: Identifier | None = None
+    api_version: Identifier
+    kind: Identifier
+    name: Identifier
+    uid: Identifier | None = None
+
+
 class Resource(Model):
     id: Identifier
     environment_id: Identifier
@@ -77,6 +105,8 @@ class Resource(Model):
     annotations: dict[str, str] = Field(default_factory=dict)
     status: Text = "unknown"
     metadata: dict[str, str] = Field(default_factory=dict)
+    reference: ResourceReference | None = None
+    details: dict[str, JsonValue] = Field(default_factory=dict)
 
 
 class API(Resource):
