@@ -188,6 +188,8 @@ class Incident(Model):
     components: tuple[Identifier, ...] = ()
     symptom: Text
     error: Text | None = None
+    historical_root_cause: Text | None = None
+    historical_remediation: Text | None = None
     root_cause_finding_id: Identifier | None = None
     remediation_recommendation_ids: tuple[Identifier, ...] = ()
     evidence_ids: tuple[Identifier, ...] = ()

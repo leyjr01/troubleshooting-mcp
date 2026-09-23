@@ -5,6 +5,7 @@ from typing import Annotated, Literal, Self
 from pydantic import Field, StringConstraints, model_validator
 
 from agt_mcp.configuration.gateway import GatewayDiscoveryConfig
+from agt_mcp.configuration.knowledge import KnowledgeLimits, KnowledgeSourceConfig
 from agt_mcp.configuration.runtime import RuntimeEnvironment
 from agt_mcp.configuration.server import MCPConfig
 from agt_mcp.core.models import Identifier, Model
@@ -82,9 +83,18 @@ class Configuration(Model):
     diagnostics: DiagnosticsConfig = DiagnosticsConfig()
     mcp: MCPConfig = MCPConfig()
     environments: tuple[RuntimeEnvironment, ...] = ()
+    knowledge_sources: tuple[KnowledgeSourceConfig, ...] = ()
+    knowledge_limits: KnowledgeLimits = KnowledgeLimits()
 
     @model_validator(mode="after")
     def references(self) -> Self:
+        if len({s.id for s in self.knowledge_sources}) != len(self.knowledge_sources):
+            raise ValueError("duplicate knowledge source")
+        if any(
+            s.metadata.environment not in {"global", *(e.id for e in self.environments)}
+            for s in self.knowledge_sources
+        ):
+            raise ValueError("unknown knowledge environment")
         if len({environment.id for environment in self.environments}) != len(self.environments):
             raise ValueError("duplicate environment")
         sources = {source.id: source for source in self.datasources}

@@ -5,6 +5,7 @@ import builtins
 from collections.abc import AsyncIterator
 from contextlib import AsyncExitStack, asynccontextmanager
 from time import monotonic
+from typing import cast
 from uuid import uuid4
 
 from pydantic import JsonValue
@@ -18,6 +19,7 @@ from agt_mcp.core.errors import (
     UnsupportedCapabilityError,
 )
 from agt_mcp.core.execution import (
+    KNOWLEDGE_TOOLS,
     RUNTIME_TOOLS,
     SEMANTIC_TOOLS,
     TOOL_DEFINITIONS,
@@ -30,6 +32,9 @@ from agt_mcp.core.runtime import RuntimeQuery
 from agt_mcp.datasources.base.adapter import DataSourceAdapter
 from agt_mcp.gateways.base.adapter import GatewayAdapter
 from agt_mcp.gateways.threescale.models import GatewayQuery
+from agt_mcp.knowledge.composition import build_knowledge
+from agt_mcp.knowledge.models import SourceType
+from agt_mcp.rag.contracts import RetrievalQuery
 from agt_mcp.services.discovery import RuntimeDiscoveryService
 from agt_mcp.services.gateway_discovery import GatewayDiscoveryService
 from agt_mcp.services.registry import AdapterRegistry
@@ -49,6 +54,7 @@ class Runtime:
         self.ready = False
         self.discovery = RuntimeDiscoveryService({})
         self.gateway_discovery = GatewayDiscoveryService(gateways)
+        self.knowledge = build_knowledge(configuration)
 
     @asynccontextmanager
     async def lifespan(self) -> AsyncIterator[None]:
@@ -107,6 +113,24 @@ class Runtime:
         available: set[Capability] = set()
         for tool in TOOL_DEFINITIONS:
             if tool.name in settings.enabled_tools:
+                if tool.name in KNOWLEDGE_TOOLS:
+                    operation = (
+                        Operation.KNOWLEDGE_SOURCES
+                        if tool.name
+                        in {
+                            ToolName.LIST_KNOWLEDGE_SOURCES,
+                            ToolName.GET_KNOWLEDGE_SOURCE_HEALTH,
+                        }
+                        else Operation.KNOWLEDGE_SEARCH
+                    )
+                    if (
+                        operation not in self.configuration.application.allowed_operations
+                        or not any(
+                            s.config.metadata.environment in {"global", environment_id}
+                            for s in self.knowledge.sources.values()
+                        )
+                    ):
+                        continue
                 if tool.name in RUNTIME_TOOLS and environment_id not in self.discovery.adapters:
                     continue
                 if tool.name in SEMANTIC_TOOLS:
@@ -143,6 +167,7 @@ class Runtime:
         resource_id: str | None = None,
         runtime_query: RuntimeQuery | None = None,
         gateway_query: GatewayQuery | None = None,
+        knowledge_query: RetrievalQuery | None = None,
     ) -> dict[str, JsonValue]:
         self.authorize(context)
         if not self.ready:
@@ -152,6 +177,8 @@ class Runtime:
             raise TimeoutError()
         try:
             async with asyncio.timeout(remaining):
+                if context.operation in KNOWLEDGE_TOOLS:
+                    return await self.execute_knowledge(context, resource_id, knowledge_query)
                 if context.operation in SEMANTIC_TOOLS or (
                     context.operation == ToolName.DISCOVER_GATEWAY
                     and (
@@ -292,6 +319,46 @@ class Runtime:
             raise AuthorizationError()
         if capability not in self.available_capabilities(context.environment_id):
             raise UnsupportedCapabilityError()
+
+    async def execute_knowledge(
+        self, context: ExecutionContext, source_id: str | None, query: RetrievalQuery | None
+    ) -> dict[str, JsonValue]:
+        tool = context.operation
+        inventory = tool in {ToolName.LIST_KNOWLEDGE_SOURCES, ToolName.GET_KNOWLEDGE_SOURCE_HEALTH}
+        operation = Operation.KNOWLEDGE_SOURCES if inventory else Operation.KNOWLEDGE_SEARCH
+        if operation not in self.configuration.application.allowed_operations:
+            raise UnsupportedCapabilityError()
+        if tool == ToolName.LIST_KNOWLEDGE_SOURCES:
+            return {
+                "sources": [s.model_dump(mode="json") for s in self.knowledge.list_sources(context)]
+            }
+        if tool == ToolName.GET_KNOWLEDGE_SOURCE_HEALTH:
+            return cast(
+                dict[str, JsonValue],
+                (await self.knowledge.health(source_id or "", context)).model_dump(mode="json"),
+            )
+        categories = {
+            ToolName.SEARCH_INTERNAL_KNOWLEDGE: (
+                SourceType.INTERNAL_KNOWLEDGE,
+                SourceType.ARCHITECTURE,
+                SourceType.RUNBOOK,
+                SourceType.KNOWN_ERROR,
+                SourceType.CMDB,
+            ),
+            ToolName.SEARCH_OFFICIAL_DOCUMENTATION: (SourceType.OFFICIAL_DOCUMENTATION,),
+            ToolName.FIND_KNOWN_ISSUE: (
+                SourceType.HISTORICAL_INCIDENT,
+                SourceType.KNOWN_ERROR,
+                SourceType.RUNBOOK,
+            ),
+        }[tool]
+        if query is None:
+            raise UnsupportedCapabilityError()
+        if query.source_types and not set(query.source_types) <= set(categories):
+            raise AuthorizationError()
+        query = query.model_copy(update={"source_types": query.source_types or categories})
+        result = await self.knowledge.search(query, context)
+        return cast(dict[str, JsonValue], result.model_dump(mode="json"))
 
     @staticmethod
     def datasource_metadata(source: DataSourceConfig) -> dict[str, JsonValue]:

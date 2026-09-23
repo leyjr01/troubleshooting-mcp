@@ -1,0 +1,18 @@
+# Overlay config/server/local.example.yaml. Enable only after reviewing the clone.
+knowledge_sources:
+  - id: internal-git
+    type: git
+    enabled: false
+    local_path: C:/knowledge/internal
+    repository_url: https://git.example.invalid/operations/knowledge.git
+    branch: main
+    subpath: knowledge
+    include: [architecture, systems, applications, apis, runbooks, known-errors, incidents, topology]
+    metadata:
+      environment: demo
+    usage: [rag, topology, troubleshooting]
+mcp:
+  server:
+    enabled_tools: [search_internal_knowledge, find_known_issue, list_knowledge_sources, get_knowledge_source_health]
+    authorization:
+      permissions: [knowledge.search.internal, knowledge.issues.read, knowledge.sources.read]

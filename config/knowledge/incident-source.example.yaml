@@ -1,0 +1,16 @@
+# Local fictional JSON records; no real database connection.
+knowledge_sources:
+  - id: incidents-local
+    type: incident-local
+    enabled: false
+    local_path: C:/knowledge/incidents
+    mapping_path: config/knowledge/incident-mapping.example.yaml
+    source_type: HISTORICAL_INCIDENT
+    metadata:
+      environment: demo
+    usage: [rag, incidents, evidence-correlation]
+mcp:
+  server:
+    enabled_tools: [find_known_issue, list_knowledge_sources, get_knowledge_source_health]
+    authorization:
+      permissions: [knowledge.issues.read, knowledge.sources.read]

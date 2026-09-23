@@ -1,0 +1,10 @@
+entity: Incident
+source:
+  datasource: incidents-local
+  table: INCIDENT_HISTORY
+fields:
+  id: {column: INCIDENT_ID}
+  timestamp: {column: CREATED_AT}
+  symptom: {column: ERROR_DESCRIPTION}
+  historical_root_cause: {column: ROOT_CAUSE}
+  historical_remediation: {column: RESOLUTION}

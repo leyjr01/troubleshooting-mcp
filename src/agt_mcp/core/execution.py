@@ -10,6 +10,10 @@ from agt_mcp.core.operations import OperationContext
 
 
 class Capability(StrEnum):
+    KNOWLEDGE_INTERNAL = "knowledge.search.internal"
+    KNOWLEDGE_OFFICIAL = "knowledge.search.official"
+    KNOWLEDGE_ISSUES = "knowledge.issues.read"
+    KNOWLEDGE_SOURCES = "knowledge.sources.read"
     GATEWAY_COMPONENTS = "gateway.components.read"
     GATEWAY_TOPOLOGY = "gateway.topology.read"
     GATEWAY_DEPENDENCIES = "gateway.dependencies.read"
@@ -27,6 +31,11 @@ class Capability(StrEnum):
 
 
 class ToolName(StrEnum):
+    SEARCH_INTERNAL_KNOWLEDGE = "search_internal_knowledge"
+    SEARCH_OFFICIAL_DOCUMENTATION = "search_official_documentation"
+    FIND_KNOWN_ISSUE = "find_known_issue"
+    LIST_KNOWLEDGE_SOURCES = "list_knowledge_sources"
+    GET_KNOWLEDGE_SOURCE_HEALTH = "get_knowledge_source_health"
     GET_GATEWAY_TOPOLOGY = "get_gateway_topology"
     INSPECT_GATEWAY_COMPONENT = "inspect_gateway_component"
     GET_GATEWAY_DEPENDENCIES = "get_gateway_dependencies"
@@ -78,7 +87,16 @@ SEMANTIC_TOOLS = frozenset(
         ToolName.GET_GATEWAY_DEPENDENCIES,
     }
 )
-LEGACY_TOOLS = frozenset(ToolName) - RUNTIME_TOOLS - SEMANTIC_TOOLS
+KNOWLEDGE_TOOLS = frozenset(
+    {
+        ToolName.SEARCH_INTERNAL_KNOWLEDGE,
+        ToolName.SEARCH_OFFICIAL_DOCUMENTATION,
+        ToolName.FIND_KNOWN_ISSUE,
+        ToolName.LIST_KNOWLEDGE_SOURCES,
+        ToolName.GET_KNOWLEDGE_SOURCE_HEALTH,
+    }
+)
+LEGACY_TOOLS = frozenset(ToolName) - RUNTIME_TOOLS - SEMANTIC_TOOLS - KNOWLEDGE_TOOLS
 
 TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
     ToolDefinition(
@@ -130,6 +148,43 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         required_capabilities=frozenset({Capability.GATEWAY_DISCOVER}),
         required_permissions=frozenset({Capability.GATEWAY_DISCOVER}),
     ),
+)
+
+TOOL_DEFINITIONS += tuple(
+    ToolDefinition(
+        name=name,
+        description=description,
+        category="knowledge",
+        required_capabilities=frozenset({capability}),
+        required_permissions=frozenset({capability}),
+    )
+    for name, description, capability in (
+        (
+            ToolName.SEARCH_INTERNAL_KNOWLEDGE,
+            "Search indexed internal untrusted knowledge",
+            Capability.KNOWLEDGE_INTERNAL,
+        ),
+        (
+            ToolName.SEARCH_OFFICIAL_DOCUMENTATION,
+            "Search curated indexed versioned documentation",
+            Capability.KNOWLEDGE_OFFICIAL,
+        ),
+        (
+            ToolName.FIND_KNOWN_ISSUE,
+            "Find prior incidents, known errors and runbooks; no causal conclusion",
+            Capability.KNOWLEDGE_ISSUES,
+        ),
+        (
+            ToolName.LIST_KNOWLEDGE_SOURCES,
+            "List authorized knowledge source metadata",
+            Capability.KNOWLEDGE_SOURCES,
+        ),
+        (
+            ToolName.GET_KNOWLEDGE_SOURCE_HEALTH,
+            "Read source and derived index freshness",
+            Capability.KNOWLEDGE_SOURCES,
+        ),
+    )
 )
 
 TOOL_DEFINITIONS += tuple(

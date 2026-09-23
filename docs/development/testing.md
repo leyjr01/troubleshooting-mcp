@@ -9,7 +9,7 @@ Suíte padrão bloqueia rede externa por fixture autouse; somente testes marcado
 local_transport permitem resolução de 127.0.0.1 para o HTTP local da Sprint 1.
 Também há subprocessos STDIO. Testes não precisam de infraestrutura externa e
 não chamam LLM. Fixtures sanitizadas em tests/fixtures.
-Coverage branch mínimo 93%; métodos abstratos não são funcionalidade executável.
+Coverage branch mínimo 94%; métodos abstratos não são funcionalidade executável.
 Documentação validada por seções/links/ADRs/catálogo; isso não avalia correção
 semântica automaticamente. Bandit analisa src; não substituir revisão humana.
 As supressões locais são justificadas: B506 no loader derivado de
@@ -26,6 +26,11 @@ isolamento, paginação, respostas malformadas e limites de payload. Veja
 Sprint 3 acrescenta classificação e topologia 3scale, testes MCP e isolamento
 de instalações. Veja [fixtures 3scale](threescale-test-fixtures.md) e o
 [relatório de validação Sprint 3](sprint-3-validation.md).
+
+Sprint 4 usa repositórios Git temporários reais, fontes curadas locais e linhas de
+incidentes fictícios. Inclui cinco tools via FastMCP, sanitização pré-indexação,
+ingestão incremental e isolamento de conhecimento. Veja
+[validação Sprint 4](sprint-4-validation.md) e [ingestão](knowledge-ingestion.md).
 
 Observabilidade usa AuditEvent validado e emit_event(logger, event), JSON
 da biblioteca logging. request_id e correlation_id obrigatórios; duração em ms,

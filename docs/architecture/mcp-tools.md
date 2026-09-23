@@ -1,5 +1,8 @@
 # Future MCP tool catalog
 
+Sprint 4 implements five opt-in knowledge tools. Their typed inputs, permissions
+and index-only behavior are specified in [knowledge contracts](knowledge-rag.md).
+
 Sprint 3 implements semantic discover_gateway and the opt-in get_gateway_topology,
 inspect_gateway_component and get_gateway_dependencies. See the executable
 [3scale contracts](threescale-discovery.md); historical entries below remain conceptual

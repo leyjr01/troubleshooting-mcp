@@ -1,0 +1,19 @@
+# URL is attribution only. No HTTP fetch is implemented.
+knowledge_sources:
+  - id: official-3scale
+    type: official-local
+    enabled: false
+    local_path: C:/knowledge/curated-3scale
+    source_type: OFFICIAL_DOCUMENTATION
+    source_url: https://docs.redhat.com/en/documentation/red_hat_3scale_api_management/2.16
+    allowed_domains: [docs.redhat.com, access.redhat.com]
+    metadata:
+      environment: global
+      product: 3scale
+      product_version: '2.16'
+    usage: [rag]
+mcp:
+  server:
+    enabled_tools: [search_official_documentation, list_knowledge_sources, get_knowledge_source_health]
+    authorization:
+      permissions: [knowledge.search.official, knowledge.sources.read]
