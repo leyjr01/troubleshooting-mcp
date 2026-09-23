@@ -4,6 +4,8 @@ from fastmcp import FastMCP
 
 from agt_mcp.core.execution import TOOL_DEFINITIONS, ToolName
 from agt_mcp.core.models import Identifier
+from agt_mcp.core.runtime import RuntimeName
+from agt_mcp.gateways.threescale.models import GatewayQuery
 from agt_mcp.mcp.dispatch import Dispatcher
 from agt_mcp.mcp.responses import ToolResponse
 
@@ -44,12 +46,22 @@ def register_tools(server: FastMCP, dispatcher: Dispatcher) -> None:
         )
 
     async def discover_gateway(
-        gateway_id: Identifier,
+        gateway_id: Identifier | None = None,
         environment_id: Identifier | None = None,
         correlation_id: str | None = None,
+        namespace: RuntimeName | None = None,
+        gateway_type: str | None = None,
     ) -> ToolResponse:
         return await dispatcher.call(
-            ToolName.DISCOVER_GATEWAY, environment_id, correlation_id, gateway_id
+            ToolName.DISCOVER_GATEWAY,
+            environment_id,
+            correlation_id,
+            gateway_id,
+            gateway_query=GatewayQuery(
+                gateway_id=gateway_id, namespace=namespace, gateway_type=gateway_type
+            )
+            if namespace or gateway_type or gateway_id is None
+            else None,
         )
 
     functions = {

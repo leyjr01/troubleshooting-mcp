@@ -1,5 +1,8 @@
 # Kubernetes runtime RBAC
 
+Sprint 3 adds only the optional [3scale APIManager Role](../../config/rbac/threescale-reader.example.yaml)
+with get/list apimanagers. The Secret policy and other grants below remain unchanged.
+
 The internal MCP authorization gate and Kubernetes RBAC both apply. Neither
 replaces the other. Start with a pre-existing read-only identity and one explicit
 namespace. The adapter never grants privileges or modifies the cluster.

@@ -13,3 +13,4 @@
 - [ADR-0011 — FastMCP as MCP Server Framework](0011-fastmcp-as-mcp-server-framework.md)
 - [ADR-0012 — Kubernetes Runtime Discovery](0012-kubernetes-runtime-discovery.md)
 - [ADR-0013 — Runtime Adapter Boundary](0013-runtime-adapter-boundary.md)
+- [ADR-0014 — Red Hat 3scale Semantic Discovery](0014-threescale-semantic-discovery.md)

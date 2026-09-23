@@ -1,0 +1,66 @@
+# Explicit opt-in. Adapt the existing reader context; no credentials belong here.
+application:
+  environment: dev
+  max_payload_bytes: 1048576
+environments:
+  - id: dev
+    name: Development 3scale
+    type: development
+    cluster: dev-cluster
+    namespace: threescale
+    runtime:
+      provider: openshift
+      authentication:
+        mode: kubeconfig
+        context: dev
+        cluster: dev-cluster
+      discovery:
+        namespaces:
+          include: [threescale]
+        cluster_scoped: false
+        custom_resources:
+          - group: apps.3scale.net
+            version: v1alpha1
+            plural: apimanagers
+            kind: APIManager
+            namespaced: true
+gateways:
+  - id: threescale-auto
+    environment_id: dev
+    adapter: threescale
+    enabled: true
+    discovery:
+      namespace: threescale
+      version_profile: auto
+      include_runtime_resources: true
+      include_dependencies: true
+mcp:
+  server:
+    enabled_tools:
+      - system_health
+      - list_capabilities
+      - list_environments
+      - discover_environment
+      - inspect_resource
+      - inspect_events
+      - find_related_resources
+      - get_resource_topology
+      - discover_gateway
+      - get_gateway_topology
+      - inspect_gateway_component
+      - get_gateway_dependencies
+    authorization:
+      mode: local-read-only
+      environment_ids: [dev]
+      permissions:
+        - system.read
+        - capability.read
+        - environment.read
+        - runtime.discover
+        - resource.read
+        - event.read
+        - topology.read
+        - gateway.discover
+        - gateway.components.read
+        - gateway.topology.read
+        - gateway.dependencies.read

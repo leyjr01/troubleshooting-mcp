@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def test_rbac_examples_only_grant_explicit_reads():
     manifests = list((ROOT / "config/rbac").glob("*.yaml"))
-    assert len(manifests) == 3
+    assert len(manifests) == 4
     for path in manifests:
         doc = yaml.safe_load(path.read_text())
         assert doc["kind"] in {"Role", "ClusterRole"}

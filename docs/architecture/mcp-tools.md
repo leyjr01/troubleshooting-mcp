@@ -1,5 +1,10 @@
 # Future MCP tool catalog
 
+Sprint 3 implements semantic discover_gateway and the opt-in get_gateway_topology,
+inspect_gateway_component and get_gateway_dependencies. See the executable
+[3scale contracts](threescale-discovery.md); historical entries below remain conceptual
+where their arguments or scopes differ from that contract.
+
 Catálogo conceitual criado na Sprint 0. A Sprint 1 implementou sete tools locais,
 incluindo discover_gateway em memória: veja [runtime MCP](mcp-runtime.md).
 A Sprint 2 implementa discover_environment, inspect_resource, inspect_events,

@@ -19,6 +19,7 @@ from agt_mcp.core.errors import (
 )
 from agt_mcp.core.execution import (
     RUNTIME_TOOLS,
+    SEMANTIC_TOOLS,
     TOOL_DEFINITIONS,
     Capability,
     ExecutionContext,
@@ -28,7 +29,9 @@ from agt_mcp.core.operations import Operation, OperationContext
 from agt_mcp.core.runtime import RuntimeQuery
 from agt_mcp.datasources.base.adapter import DataSourceAdapter
 from agt_mcp.gateways.base.adapter import GatewayAdapter
+from agt_mcp.gateways.threescale.models import GatewayQuery
 from agt_mcp.services.discovery import RuntimeDiscoveryService
+from agt_mcp.services.gateway_discovery import GatewayDiscoveryService
 from agt_mcp.services.registry import AdapterRegistry
 
 
@@ -45,6 +48,7 @@ class Runtime:
         self.started_at: float | None = None
         self.ready = False
         self.discovery = RuntimeDiscoveryService({})
+        self.gateway_discovery = GatewayDiscoveryService(gateways)
 
     @asynccontextmanager
     async def lifespan(self) -> AsyncIterator[None]:
@@ -105,6 +109,17 @@ class Runtime:
             if tool.name in settings.enabled_tools:
                 if tool.name in RUNTIME_TOOLS and environment_id not in self.discovery.adapters:
                     continue
+                if tool.name in SEMANTIC_TOOLS:
+                    required = {
+                        ToolName.GET_GATEWAY_TOPOLOGY: Operation.GATEWAY_TOPOLOGY,
+                        ToolName.INSPECT_GATEWAY_COMPONENT: Operation.COMPONENTS,
+                        ToolName.GET_GATEWAY_DEPENDENCIES: Operation.DEPENDENCIES,
+                    }[tool.name]
+                    if required not in self.configuration.application.allowed_operations or not any(
+                        required in adapter.capabilities()
+                        for adapter in self.gateway_discovery.adapters(environment_id).values()
+                    ):
+                        continue
                 available.update(tool.required_capabilities)
         if not any(
             Operation.DISCOVER_GATEWAY in e.adapter.capabilities()
@@ -127,6 +142,7 @@ class Runtime:
         context: ExecutionContext,
         resource_id: str | None = None,
         runtime_query: RuntimeQuery | None = None,
+        gateway_query: GatewayQuery | None = None,
     ) -> dict[str, JsonValue]:
         self.authorize(context)
         if not self.ready:
@@ -136,6 +152,33 @@ class Runtime:
             raise TimeoutError()
         try:
             async with asyncio.timeout(remaining):
+                if context.operation in SEMANTIC_TOOLS or (
+                    context.operation == ToolName.DISCOVER_GATEWAY
+                    and (
+                        gateway_query is not None
+                        or (
+                            bool(self.gateway_discovery.adapters(context.environment_id))
+                            and resource_id
+                            not in {
+                                e.id
+                                for e in self.gateways.entries(context.environment_id)
+                                if e.id
+                                not in self.gateway_discovery.adapters(context.environment_id)
+                            }
+                        )
+                    )
+                ):
+                    operation = {
+                        ToolName.DISCOVER_GATEWAY: Operation.DISCOVER_GATEWAY,
+                        ToolName.GET_GATEWAY_TOPOLOGY: Operation.GATEWAY_TOPOLOGY,
+                        ToolName.INSPECT_GATEWAY_COMPONENT: Operation.COMPONENTS,
+                        ToolName.GET_GATEWAY_DEPENDENCIES: Operation.DEPENDENCIES,
+                    }[context.operation]
+                    if operation not in self.configuration.application.allowed_operations:
+                        raise UnsupportedCapabilityError()
+                    return await self.gateway_discovery.execute(
+                        context, gateway_query or GatewayQuery(gateway_id=resource_id)
+                    )
                 if context.operation in RUNTIME_TOOLS:
                     return await self.discovery.execute(context, runtime_query or RuntimeQuery())
                 return await self._dispatch(context, resource_id)

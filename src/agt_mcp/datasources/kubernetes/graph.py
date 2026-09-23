@@ -273,6 +273,8 @@ class GraphBuilder:
                         )
         if raw["kind"] == "Pod":
             self.pod_references(source, spec)
+        elif raw["kind"] in {"Deployment", "StatefulSet", "DaemonSet", "ReplicaSet"}:
+            self.pod_references(source, spec.get("template", {}).get("spec", {}))
         if raw["kind"] == "PersistentVolumeClaim" and spec.get("volumeName"):
             self.refer(
                 source, "PersistentVolume", spec["volumeName"], Relationship.BOUND_TO, "pvc-spec"

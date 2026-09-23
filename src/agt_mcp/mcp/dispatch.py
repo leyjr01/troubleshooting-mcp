@@ -6,8 +6,9 @@ import logging
 from time import monotonic
 
 from agt_mcp.core.errors import SanitizationError
-from agt_mcp.core.execution import ToolName
+from agt_mcp.core.execution import SEMANTIC_TOOLS, ToolName
 from agt_mcp.core.runtime import RuntimeQuery
+from agt_mcp.gateways.threescale.models import GatewayQuery
 from agt_mcp.mcp.context import create_context
 from agt_mcp.mcp.error_mapping import error_code
 from agt_mcp.mcp.responses import ToolResponse
@@ -26,6 +27,7 @@ class Dispatcher:
         correlation_id: str | None = None,
         resource_id: str | None = None,
         runtime_query: RuntimeQuery | None = None,
+        gateway_query: GatewayQuery | None = None,
     ) -> ToolResponse:
         context = create_context(self.runtime.configuration, tool, environment_id, correlation_id)
         started = monotonic()
@@ -33,7 +35,9 @@ class Dispatcher:
         code: str | None = None
         try:
             data = (
-                await self.runtime.execute(context, resource_id, runtime_query)
+                await self.runtime.execute(context, resource_id, runtime_query, gateway_query)
+                if gateway_query is not None
+                else await self.runtime.execute(context, resource_id, runtime_query)
                 if runtime_query is not None
                 else await self.runtime.execute(context, resource_id)
             )
@@ -74,6 +78,19 @@ class Dispatcher:
                 ),
                 None,
             )
+            semantic_adapters = self.runtime.gateway_discovery.adapters(context.environment_id)
+            legacy_gateway_ids = {
+                entry.id
+                for entry in self.runtime.gateways.entries(context.environment_id)
+                if entry.id not in semantic_adapters
+            }
+            semantic_request = tool in SEMANTIC_TOOLS or (
+                tool == ToolName.DISCOVER_GATEWAY
+                and (
+                    gateway_query is not None
+                    or (bool(semantic_adapters) and resource_id not in legacy_gateway_ids)
+                )
+            )
             self.logger.info(
                 json.dumps(
                     {
@@ -84,7 +101,9 @@ class Dispatcher:
                         "environment_id": context.environment_id
                         if known_environment
                         else "unrecognized",
-                        "adapter": "kubernetes-runtime"
+                        "adapter": "threescale"
+                        if semantic_request
+                        else "kubernetes-runtime"
                         if runtime_query is not None
                         else "in-memory"
                         if tool in {ToolName.DISCOVER_GATEWAY, ToolName.INSPECT_DATASOURCE}

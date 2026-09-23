@@ -10,6 +10,9 @@ from agt_mcp.core.operations import OperationContext
 
 
 class Capability(StrEnum):
+    GATEWAY_COMPONENTS = "gateway.components.read"
+    GATEWAY_TOPOLOGY = "gateway.topology.read"
+    GATEWAY_DEPENDENCIES = "gateway.dependencies.read"
     RUNTIME_DISCOVER = "runtime.discover"
     RESOURCE_READ = "resource.read"
     EVENT_READ = "event.read"
@@ -24,6 +27,9 @@ class Capability(StrEnum):
 
 
 class ToolName(StrEnum):
+    GET_GATEWAY_TOPOLOGY = "get_gateway_topology"
+    INSPECT_GATEWAY_COMPONENT = "inspect_gateway_component"
+    GET_GATEWAY_DEPENDENCIES = "get_gateway_dependencies"
     DISCOVER_ENVIRONMENT = "discover_environment"
     INSPECT_RESOURCE = "inspect_resource"
     INSPECT_EVENTS = "inspect_events"
@@ -65,7 +71,14 @@ RUNTIME_TOOLS = frozenset(
         ToolName.GET_RESOURCE_TOPOLOGY,
     }
 )
-LEGACY_TOOLS = frozenset(ToolName) - RUNTIME_TOOLS
+SEMANTIC_TOOLS = frozenset(
+    {
+        ToolName.GET_GATEWAY_TOPOLOGY,
+        ToolName.INSPECT_GATEWAY_COMPONENT,
+        ToolName.GET_GATEWAY_DEPENDENCIES,
+    }
+)
+LEGACY_TOOLS = frozenset(ToolName) - RUNTIME_TOOLS - SEMANTIC_TOOLS
 
 TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
     ToolDefinition(
@@ -112,7 +125,7 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
     ),
     ToolDefinition(
         name=ToolName.DISCOVER_GATEWAY,
-        description="Discover an in-memory gateway",
+        description="Discover authorized gateway installations",
         category="gateway",
         required_capabilities=frozenset({Capability.GATEWAY_DISCOVER}),
         required_permissions=frozenset({Capability.GATEWAY_DISCOVER}),
@@ -152,6 +165,33 @@ TOOL_DEFINITIONS += tuple(
             ToolName.GET_RESOURCE_TOPOLOGY,
             "Return a bounded runtime subgraph",
             Capability.TOPOLOGY_READ,
+        ),
+    )
+)
+
+TOOL_DEFINITIONS += tuple(
+    ToolDefinition(
+        name=name,
+        description=description,
+        category="gateway",
+        required_capabilities=frozenset({capability}),
+        required_permissions=frozenset({capability}),
+    )
+    for name, description, capability in (
+        (
+            ToolName.GET_GATEWAY_TOPOLOGY,
+            "Read bounded gateway semantic topology",
+            Capability.GATEWAY_TOPOLOGY,
+        ),
+        (
+            ToolName.INSPECT_GATEWAY_COMPONENT,
+            "Inspect gateway component classification and evidence",
+            Capability.GATEWAY_COMPONENTS,
+        ),
+        (
+            ToolName.GET_GATEWAY_DEPENDENCIES,
+            "Read structural gateway dependencies without connectivity probes",
+            Capability.GATEWAY_DEPENDENCIES,
         ),
     )
 )

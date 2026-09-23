@@ -1,5 +1,11 @@
 # Threat analysis inicial
 
+Sprint 3 adds an evidence-based 3scale classifier over the runtime port. Restricted
+APIManager booleans and recognized metadata are projected in the adapter;
+names-only detection is rejected and metadata-only candidates cannot receive HIGH.
+See [3scale data access](threescale-data-access.md). No new credential or network
+boundary is introduced outside the existing Kubernetes runtime.
+
 Trust boundaries: cliente futuro -> autorização -> aplicação -> adapters ->
 fontes não confiáveis; segredo -> consumidor autorizado; resultado -> sanitização
 -> cliente/LLM; arquivo local -> safe parser. Sem acesso produtivo nesta sprint.

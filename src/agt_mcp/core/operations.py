@@ -8,6 +8,8 @@ from agt_mcp.core.models import Identifier, Model, Text
 
 
 class Operation(StrEnum):
+    COMPONENTS = "gateway_components"
+    GATEWAY_TOPOLOGY = "gateway_topology"
     HEALTH = "health"
     QUERY = "query"
     DISCOVER_SCHEMA = "discover_schema"

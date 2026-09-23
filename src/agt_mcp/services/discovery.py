@@ -1,6 +1,7 @@
 """Application discovery/inspection/topology services consume canonical runtime ports."""
 
 from collections import Counter
+from collections.abc import Mapping
 from typing import cast
 
 from pydantic import JsonValue
@@ -48,8 +49,8 @@ class TopologyService:
 
 
 class RuntimeDiscoveryService:
-    def __init__(self, adapters: dict[str, RuntimeAdapter]) -> None:
-        self.adapters = adapters.copy()
+    def __init__(self, adapters: Mapping[str, RuntimeAdapter]) -> None:
+        self.adapters = dict(adapters)
 
     async def execute(self, context: ExecutionContext, query: RuntimeQuery) -> dict[str, JsonValue]:
         adapter = self.adapters.get(context.environment_id)

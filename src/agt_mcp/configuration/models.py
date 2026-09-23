@@ -4,6 +4,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, StringConstraints, model_validator
 
+from agt_mcp.configuration.gateway import GatewayDiscoveryConfig
 from agt_mcp.configuration.runtime import RuntimeEnvironment
 from agt_mcp.configuration.server import MCPConfig
 from agt_mcp.core.models import Identifier, Model
@@ -49,7 +50,8 @@ class GatewayConfig(Model):
     environment_id: Identifier
     adapter: Identifier
     enabled: bool = False
-    datasource_id: Identifier
+    datasource_id: Identifier | None = None
+    discovery: GatewayDiscoveryConfig = GatewayDiscoveryConfig()
 
 
 class RAGConfig(Model):
@@ -91,7 +93,29 @@ class Configuration(Model):
         if len({gateway.id for gateway in self.gateways}) != len(self.gateways):
             raise ValueError("duplicate gateway")
         for gateway in self.gateways:
-            source = sources.get(gateway.datasource_id)
+            if gateway.adapter == "threescale" and gateway.datasource_id is None:
+                environment = next(
+                    (e for e in self.environments if e.id == gateway.environment_id), None
+                )
+                if (
+                    gateway.datasource_id is not None
+                    or environment is None
+                    or environment.runtime is None
+                ):
+                    raise ValueError("3scale requires an explicit runtime environment")
+                if gateway.enabled and not environment.enabled:
+                    raise ValueError("enabled gateway requires enabled environment")
+                if not any(
+                    c.kind == "APIManager"
+                    and c.group == "apps.3scale.net"
+                    and c.version == "v1alpha1"
+                    and c.plural == "apimanagers"
+                    and c.namespaced
+                    for c in environment.runtime.discovery.custom_resources
+                ):
+                    raise ValueError("3scale requires the APIManager allowlist")
+                continue
+            source = sources.get(gateway.datasource_id or "")
             if source is None or source.environment_id != gateway.environment_id:
                 raise ValueError("invalid gateway datasource scope")
             if gateway.enabled and not source.enabled:

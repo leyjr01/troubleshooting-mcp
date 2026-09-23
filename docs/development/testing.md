@@ -9,7 +9,7 @@ Suíte padrão bloqueia rede externa por fixture autouse; somente testes marcado
 local_transport permitem resolução de 127.0.0.1 para o HTTP local da Sprint 1.
 Também há subprocessos STDIO. Testes não precisam de infraestrutura externa e
 não chamam LLM. Fixtures sanitizadas em tests/fixtures.
-Coverage branch mínimo 92%; métodos abstratos não são funcionalidade executável.
+Coverage branch mínimo 93%; métodos abstratos não são funcionalidade executável.
 Documentação validada por seções/links/ADRs/catálogo; isso não avalia correção
 semântica automaticamente. Bandit analisa src; não substituir revisão humana.
 As supressões locais são justificadas: B506 no loader derivado de
@@ -22,6 +22,10 @@ pelo cliente MCP. Testes validam RBAC, fronteiras de imports, UID, Secret exclus
 isolamento, paginação, respostas malformadas e limites de payload. Veja
 [testes Kubernetes](kubernetes-local-testing.md) e
 [validação Sprint 2](sprint-2-validation.md).
+
+Sprint 3 acrescenta classificação e topologia 3scale, testes MCP e isolamento
+de instalações. Veja [fixtures 3scale](threescale-test-fixtures.md) e o
+[relatório de validação Sprint 3](sprint-3-validation.md).
 
 Observabilidade usa AuditEvent validado e emit_event(logger, event), JSON
 da biblioteca logging. request_id e correlation_id obrigatórios; duração em ms,

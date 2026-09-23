@@ -1,16 +1,18 @@
 # API Gateway Troubleshooting MCP
 
-Fundação modular para diagnóstico de gateways. Primeiro alvo futuro: Red Hat
-3scale/APIcast em OpenShift. Sprint 2 acrescenta descoberta Kubernetes/OpenShift
-read-only ao servidor FastMCP STDIO/HTTP local, com cinco novas tools opcionais
-além das sete da Sprint 1. A configuração local original continua em memória.
+Fundação modular para diagnóstico de gateways. Alvo inicial: Red Hat
+3scale/APIcast em OpenShift. Sprint 3 acrescenta classificação e topologia semântica
+3scale à descoberta Kubernetes/OpenShift read-only. O servidor FastMCP preserva
+STDIO/HTTP local e as ferramentas anteriores. A configuração local original continua em memória.
+
+Resultados e limites verificados: [validação da Sprint 3](docs/development/sprint-3-validation.md).
 
 ## Goals e non-goals
 
 Permitir múltiplos ambientes, clusters, gateways e fontes com conclusões
 rastreáveis. A integração runtime permite leituras Kubernetes explicitamente
-configuradas. Bancos, Git remoto, LLMs, remediação, diagnóstico, RAG e semântica
-3scale permanecem fora do escopo.
+configuradas. Bancos, Git remoto, LLMs, remediação, diagnóstico causal e RAG
+permanecem fora do escopo. Descoberta 3scale não é diagnóstico de troubleshooting.
 
 ## Architecture
 
@@ -87,7 +89,7 @@ operacional local. Nenhum modo de acesso remoto está disponível nesta sprint.
 ## Testing e current status
 
 Fixtures são sintéticas, nenhum teste exige rede. Coverage mínimo configurado
-em 92%, com branches e relatório de linhas; cobertura não prova segurança produtiva.
+em 93%, com branches e relatório de linhas; cobertura não prova segurança produtiva.
 Testes de integração incluem cliente MCP em memória, subprocesso STDIO e HTTP
 em loopback. O SDK Kubernetes real usa respostas simuladas nos testes; nenhum
 cluster foi acessado durante a validação. A matriz de cenários
@@ -114,6 +116,18 @@ Veja [runtime discovery](docs/architecture/runtime-discovery.md),
 
 ## Security principles
 
+O suporte 3scale tem perfil primário 2.16, com Redis e banco System externos,
+Zync configurável e evidência por classificação. Versões desconhecidas ou sem
+perfil continuam com warnings e expectativas limitadas. Configure
+[threescale.example.yaml](config/server/threescale.example.yaml) para habilitar
+discover_gateway, get_gateway_topology, inspect_gateway_component e
+get_gateway_dependencies. As tools consultam estrutura e referências; não acessam
+Admin Portal, management API, valores de Secrets ou endpoints de banco/Redis.
+Veja [discovery 3scale](docs/architecture/threescale-discovery.md),
+[topologia semântica](docs/architecture/threescale-semantic-topology.md),
+[segurança](docs/security/threescale-data-access.md) e
+[fixtures](docs/development/threescale-test-fixtures.md).
+
 READ, DIAGNOSE, RECOMMEND; nenhuma operação de escrita externa.
 Autorização e escopo precedem adapters; deadline obrigatório; recomendações
 não executáveis. Sanitização inicial remove texto livre e campos desconhecidos.
@@ -125,7 +139,8 @@ Não resolve prompt injection por semântica: não há chamada ao modelo.
 1. Sprint 0: fundação, contratos, modelos e governança.
 2. Sprint 1: FastMCP, application services, autorização local e adapters em memória.
 3. Sprint 2: descoberta Kubernetes/OpenShift, topology e Evidence de observação.
-4. Sprints seguintes: semântica 3scale e diagnóstico determinístico.
+4. Sprint 3: descoberta e topologia semântica 3scale/APIcast.
+5. Sprints seguintes: diagnóstico determinístico e bridges de conhecimento/datasources.
 4. Conhecimento federado, mappings concretos e RAG com ACL/provenance.
 5. Autenticação corporativa MCP, observabilidade externa e hardening operacional.
 

@@ -30,7 +30,7 @@ branch = true
 
 [tool.coverage.report]
 show_missing = true
-fail_under = 92
+fail_under = 93
 exclude_also = ["@abstractmethod", "if __name__ == .__main__.:"]
 
 [tool.ruff]

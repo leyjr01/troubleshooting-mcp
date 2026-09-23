@@ -18,6 +18,7 @@ from agt_mcp.core.models import (
     ResourceKind,
     ResourceReference,
 )
+from agt_mcp.datasources.kubernetes.semantic_projection import safe_hints
 
 KNOWN_REASONS = {
     "CrashLoopBackOff",
@@ -311,6 +312,9 @@ def normalize(raw: dict[str, Any], environment: str, cluster: str) -> Resource:
                 if v.get("served") is True
             ],
         }
+    hints = safe_hints(raw)
+    if hints:
+        details["discovery_hints"] = hints
     # ConfigMap data/binaryData, Event messages, annotations and arbitrary CR specs are absent.
     return Resource(
         id=identity(ref),

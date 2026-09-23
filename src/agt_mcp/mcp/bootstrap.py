@@ -1,4 +1,4 @@
-"""Explicit composition root: only opted-in in-memory adapters can be activated."""
+"""Explicit composition root for opted-in local and runtime-backed adapters."""
 
 from agt_mcp.configuration.models import Configuration
 from agt_mcp.core.errors import ConfigurationError
@@ -8,6 +8,7 @@ from agt_mcp.datasources.kubernetes.adapter import KubernetesRuntimeAdapter
 from agt_mcp.datasources.memory import InMemoryDataSourceAdapter
 from agt_mcp.gateways.base.adapter import GatewayAdapter
 from agt_mcp.gateways.memory import InMemoryGatewayAdapter
+from agt_mcp.gateways.threescale.adapter import ThreeScaleGatewayAdapter
 from agt_mcp.services.discovery import RuntimeDiscoveryService
 from agt_mcp.services.registry import AdapterEntry, AdapterRegistry
 from agt_mcp.services.runtime import Runtime
@@ -22,6 +23,11 @@ def build_runtime(configuration: Configuration) -> Runtime:
         raise ConfigurationError()
     gateways = AdapterRegistry[GatewayAdapter]()
     datasources = AdapterRegistry[DataSourceAdapter]()
+    runtime_adapters = {
+        e.id: KubernetesRuntimeAdapter(e)
+        for e in configuration.environments
+        if e.enabled and e.runtime is not None
+    }
     for source in configuration.datasources:
         if source.environment_id not in known:
             raise ConfigurationError()
@@ -41,6 +47,26 @@ def build_runtime(configuration: Configuration) -> Runtime:
             raise ConfigurationError()
         if not gateway.enabled:
             continue
+        if gateway.adapter == "threescale":
+            runtime_adapter = runtime_adapters.get(gateway.environment_id)
+            if runtime_adapter is None or gateway.datasource_id is not None:
+                raise ConfigurationError()
+            gateways.register(
+                AdapterEntry(
+                    id=gateway.id,
+                    environment_id=gateway.environment_id,
+                    adapter=ThreeScaleGatewayAdapter(
+                        gateway.environment_id,
+                        runtime_adapter,
+                        gateway.discovery,
+                        max_edges=runtime_adapter.settings.discovery.limits.max_relationships,
+                        max_components=min(
+                            200, runtime_adapter.settings.discovery.limits.max_topology_nodes
+                        ),
+                    ),
+                )
+            )
+            continue
         if gateway.adapter != "in-memory":
             raise ConfigurationError()
         model = Gateway(
@@ -59,11 +85,5 @@ def build_runtime(configuration: Configuration) -> Runtime:
             )
         )
     runtime = Runtime(configuration, gateways, datasources)
-    runtime.discovery = RuntimeDiscoveryService(
-        {
-            environment.id: KubernetesRuntimeAdapter(environment)
-            for environment in configuration.environments
-            if environment.enabled and environment.runtime is not None
-        }
-    )
+    runtime.discovery = RuntimeDiscoveryService(runtime_adapters)
     return runtime
