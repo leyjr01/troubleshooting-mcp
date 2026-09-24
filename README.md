@@ -22,6 +22,12 @@ Veja [contratos e limites](docs/architecture/evidence-correlation.md),
 
 ## Goals e non-goals
 
+Sprint 7 adiciona Virtual Trace e probes DNS/TCP/TLS/HTTP(S) com destinos aprovados,
+proteção SSRF, evidências e reavaliação pelo evaluator existente. O padrão é
+`enabled: false` e `plan_only`. Veja [contratos](docs/architecture/virtual-trace-probes.md)
+e [segurança dos probes](docs/security/probe-safety.md).
+Resultados: [validação da Sprint 7](docs/development/sprint-7-validation.md).
+
 Sprint 6 adiciona hipóteses determinísticas, candidatos sustentados por evidências
 e planos de troubleshooting não executáveis. Cinco tools MCP expõem diagnóstico,
 explicação e planejamento; veja [contratos](docs/architecture/troubleshooting-engine.md)
@@ -108,7 +114,7 @@ operacional local. Nenhum modo de acesso remoto está disponível nesta sprint.
 ## Testing e current status
 
 Fixtures são sintéticas, nenhum teste exige rede. Coverage mínimo configurado
-em 95,5%, com branches e relatório de linhas; cobertura não prova segurança produtiva.
+em 96%, com branches e relatório de linhas; cobertura não prova segurança produtiva.
 Testes de integração incluem cliente MCP em memória, subprocesso STDIO e HTTP
 em loopback. O SDK Kubernetes real usa respostas simuladas nos testes; nenhum
 cluster foi acessado durante a validação. A matriz de cenários
@@ -162,7 +168,7 @@ Não resolve prompt injection por semântica: não há chamada ao modelo.
 5. Sprint 4: fontes de conhecimento, mappings de incidentes e RAG local com ACL/provenance.
 6. Sprint 5: Evidence Correlation Engine determinístico, sem diagnóstico causal.
 7. Sprint 6: Hypothesis & Troubleshooting Engine, candidatos e planos não executáveis.
-8. Próxima: Sprint 7 — Virtual Trace & Active/Passive Probe Foundation.
+8. Sprint 7: Virtual Trace & Safe Probe Foundation, com execução controlada opcional.
 9. Futuro: autenticação corporativa MCP, observabilidade externa e hardening operacional.
 
 Todos os textos do projeto são UTF-8. No Windows PowerShell use

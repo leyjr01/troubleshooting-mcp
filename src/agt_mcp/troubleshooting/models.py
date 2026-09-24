@@ -25,6 +25,8 @@ class SafetyClass(StrEnum):
 
 
 class RuleKind(StrEnum):
+    PROBE_TLS = "probe_tls"
+    PROBE_TCP = "probe_tcp"
     AVAILABILITY = "availability"
     ENDPOINT = "endpoint"
     ROUTING = "routing"

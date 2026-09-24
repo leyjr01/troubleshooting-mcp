@@ -247,10 +247,14 @@ class EvidenceCorrelationEngine:
         return tuple(ordered), tuple(fresh)
 
     async def correlate(
-        self, query: CorrelationQuery, execution: ExecutionContext
+        self,
+        query: CorrelationQuery,
+        execution: ExecutionContext,
+        *,
+        snapshot: CorrelationSnapshot | None = None,
     ) -> CorrelationResult:
         context = self.context(query, execution)
-        snapshot = await self.provider.collect(context.request, execution)
+        snapshot = snapshot or await self.provider.collect(context.request, execution)
         # Default windows end after collection so observation timestamps are not future events.
         context = self.context(context.request, execution)
         distances = self.scope(snapshot, context)
@@ -292,10 +296,15 @@ class EvidenceCorrelationEngine:
             )
             for e in topology.edges
         )
+        component_ids = {
+            c.id
+            for c in snapshot.components
+            if set(c.resources) & distances.keys() or c.id == context.request.component_id
+        }
         semantic = tuple(
             e
             for e in sorted(snapshot.links, key=lambda e: e.id)
-            if e.source in distances or e.target in distances
+            if e.source in distances or e.target in distances or e.source in component_ids
         )
         components = tuple(
             c

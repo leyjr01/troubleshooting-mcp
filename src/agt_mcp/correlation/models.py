@@ -74,6 +74,10 @@ class RelationType(StrEnum):
 
 
 class SignalCode(StrEnum):
+    PROBE_TLS_FAILED = "probe_tls_failed"
+    PROBE_TLS_VERIFIED = "probe_tls_verified"
+    PROBE_TCP_FAILED = "probe_tcp_failed"
+    PROBE_TCP_CONNECTED = "probe_tcp_connected"
     CRASH_LOOP = "crash_loop"
     PVC_NOT_BOUND = "pvc_not_bound"
     PVC_BOUND = "pvc_bound"

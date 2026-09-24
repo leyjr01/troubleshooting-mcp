@@ -10,6 +10,9 @@ from agt_mcp.core.operations import OperationContext
 
 
 class Capability(StrEnum):
+    TRACE_READ = "trace.read"
+    PROBE_PLAN = "probe.plan"
+    PROBE_EXECUTE = "probe.execute.active_readonly"
     TROUBLESHOOTING_READ = "troubleshooting.read"
     CORRELATION_READ = "correlation.read"
     KNOWLEDGE_INTERNAL = "knowledge.search.internal"
@@ -33,6 +36,11 @@ class Capability(StrEnum):
 
 
 class ToolName(StrEnum):
+    TRACE_RESOURCE = "trace_resource"
+    TRACE_GATEWAY_COMPONENT = "trace_gateway_component"
+    PLAN_PROBES = "plan_probes"
+    EXECUTE_PROBE_PLAN = "execute_probe_plan"
+    EXPLAIN_TRACE = "explain_trace"
     DIAGNOSE_COMPONENT = "diagnose_component"
     DIAGNOSE_GATEWAY = "diagnose_gateway"
     DIAGNOSE_API = "diagnose_api"
@@ -122,6 +130,16 @@ TROUBLESHOOTING_TOOLS = frozenset(
     }
 )
 LEGACY_TOOLS -= TROUBLESHOOTING_TOOLS
+TRACE_TOOLS = frozenset(
+    {
+        ToolName.TRACE_RESOURCE,
+        ToolName.TRACE_GATEWAY_COMPONENT,
+        ToolName.PLAN_PROBES,
+        ToolName.EXECUTE_PROBE_PLAN,
+        ToolName.EXPLAIN_TRACE,
+    }
+)
+LEGACY_TOOLS -= TRACE_TOOLS
 
 TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
     ToolDefinition(
@@ -173,6 +191,23 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         required_capabilities=frozenset({Capability.GATEWAY_DISCOVER}),
         required_permissions=frozenset({Capability.GATEWAY_DISCOVER}),
     ),
+)
+
+TOOL_DEFINITIONS += tuple(
+    ToolDefinition(
+        name=name,
+        description="Structural trace or policy-controlled network observation",
+        category="trace",
+        required_capabilities=frozenset({capability}),
+        required_permissions=frozenset({capability}),
+    )
+    for name, capability in (
+        (ToolName.TRACE_RESOURCE, Capability.TRACE_READ),
+        (ToolName.TRACE_GATEWAY_COMPONENT, Capability.TRACE_READ),
+        (ToolName.EXPLAIN_TRACE, Capability.TRACE_READ),
+        (ToolName.PLAN_PROBES, Capability.PROBE_PLAN),
+        (ToolName.EXECUTE_PROBE_PLAN, Capability.PROBE_EXECUTE),
+    )
 )
 
 TOOL_DEFINITIONS += tuple(

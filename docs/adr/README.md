@@ -18,3 +18,4 @@
 - [ADR-0016 — Knowledge Security and Trust Boundary](0016-knowledge-security-trust-boundary.md)
 - [ADR-0017 — Evidence Correlation Engine](0017-evidence-correlation-engine.md)
 - [ADR-0018 — Hypothesis and Troubleshooting Architecture](0018-hypothesis-and-troubleshooting-architecture.md)
+- [ADR-0019 — Virtual Trace and Safe Probe Architecture](0019-virtual-trace-and-safe-probe-architecture.md)

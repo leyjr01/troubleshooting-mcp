@@ -28,6 +28,17 @@ def requirement(
 
 
 REQUIREMENTS = {
+    RuleKind.PROBE_TLS: (
+        requirement("tls_verification", "Observe verified TLS connection", "tls.handshake", True),
+    ),
+    RuleKind.PROBE_TCP: (
+        requirement(
+            "tcp_connectivity",
+            "Observe TCP connection from probe vantage point",
+            "tcp.connect",
+            True,
+        ),
+    ),
     RuleKind.AVAILABILITY: (requirement("runtime_state", "Inspect current runtime availability"),),
     RuleKind.ENDPOINT: (
         requirement("service_topology", "Inspect Service endpoint topology", "topology.read"),

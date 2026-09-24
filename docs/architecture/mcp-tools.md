@@ -1,5 +1,9 @@
 # Future MCP tool catalog
 
+Sprint 7 implements trace_resource, trace_gateway_component, plan_probes,
+execute_probe_plan and explain_trace. See [trace/probe contracts](virtual-trace-probes.md).
+Network execution is disabled by default and requires a separate explicit permission.
+
 Sprint 6 implements opt-in diagnose_component, diagnose_gateway, diagnose_api,
 explain_hypothesis and get_troubleshooting_plan. Executable contracts are in
 [troubleshooting engine](troubleshooting-engine.md). Unmapped APIs return an explicit

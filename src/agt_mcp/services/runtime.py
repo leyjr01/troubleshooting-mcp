@@ -24,6 +24,7 @@ from agt_mcp.core.execution import (
     RUNTIME_TOOLS,
     SEMANTIC_TOOLS,
     TOOL_DEFINITIONS,
+    TRACE_TOOLS,
     TROUBLESHOOTING_TOOLS,
     Capability,
     ExecutionContext,
@@ -34,11 +35,15 @@ from agt_mcp.core.runtime import RuntimeQuery
 from agt_mcp.correlation.engine import EvidenceCorrelationEngine
 from agt_mcp.correlation.models import CorrelationOperation
 from agt_mcp.datasources.base.adapter import DataSourceAdapter
+from agt_mcp.datasources.probe_network import NetworkProbeExecutor
 from agt_mcp.gateways.base.adapter import GatewayAdapter
 from agt_mcp.gateways.threescale.hypotheses import ThreeScaleHypothesisProvider
 from agt_mcp.gateways.threescale.models import GatewayQuery
 from agt_mcp.knowledge.composition import build_knowledge
 from agt_mcp.knowledge.models import SourceType
+from agt_mcp.probes.planner import ProbePlanner
+from agt_mcp.probes.policy import ProbePolicy
+from agt_mcp.probes.runner import ProbeRunner
 from agt_mcp.rag.contracts import RetrievalQuery
 from agt_mcp.services.correlation import CorrelationService
 from agt_mcp.services.correlation_providers import (
@@ -49,7 +54,9 @@ from agt_mcp.services.correlation_providers import (
 from agt_mcp.services.discovery import RuntimeDiscoveryService
 from agt_mcp.services.gateway_discovery import GatewayDiscoveryService
 from agt_mcp.services.registry import AdapterRegistry
+from agt_mcp.services.trace import TraceService
 from agt_mcp.services.troubleshooting import TroubleshootingService
+from agt_mcp.trace.models import TraceOperation
 from agt_mcp.troubleshooting.catalog import (
     GenericHypothesisProvider,
     HypothesisCatalog,
@@ -57,6 +64,7 @@ from agt_mcp.troubleshooting.catalog import (
 )
 from agt_mcp.troubleshooting.engine import TroubleshootingEngine
 from agt_mcp.troubleshooting.models import TroubleshootingOperation
+from agt_mcp.troubleshooting.network_hypotheses import NetworkHypothesisProvider
 
 
 class Runtime:
@@ -91,10 +99,19 @@ class Runtime:
                         GenericHypothesisProvider(),
                         KubernetesHypothesisProvider(),
                         ThreeScaleHypothesisProvider(),
+                        NetworkHypothesisProvider(),
                     )
                 ),
                 configuration.troubleshooting,
             )
+        )
+
+        policy = ProbePolicy(configuration.probes)
+        executor = NetworkProbeExecutor(policy)
+        self.trace = TraceService(
+            self.troubleshooting,
+            ProbePlanner(policy, executor.capabilities()),
+            ProbeRunner(policy, executor),
         )
 
     @asynccontextmanager
@@ -154,6 +171,17 @@ class Runtime:
         available: set[Capability] = set()
         for tool in TOOL_DEFINITIONS:
             if tool.name in settings.enabled_tools:
+                if tool.name in TRACE_TOOLS and (
+                    Operation.DIAGNOSE not in self.configuration.application.allowed_operations
+                    or (
+                        tool.name == ToolName.EXECUTE_PROBE_PLAN
+                        and (
+                            not self.configuration.probes.enabled
+                            or self.configuration.probes.execution_mode != "execute_allowed"
+                        )
+                    )
+                ):
+                    continue
                 if (
                     tool.name in TROUBLESHOOTING_TOOLS
                     and Operation.DIAGNOSE not in self.configuration.application.allowed_operations
@@ -221,6 +249,7 @@ class Runtime:
         knowledge_query: RetrievalQuery | None = None,
         correlation_operation: CorrelationOperation | None = None,
         troubleshooting_operation: TroubleshootingOperation | None = None,
+        trace_operation: TraceOperation | None = None,
     ) -> dict[str, JsonValue]:
         self.authorize(context)
         if not self.ready:
@@ -230,6 +259,15 @@ class Runtime:
             raise TimeoutError()
         try:
             async with asyncio.timeout(remaining):
+                if context.operation in TRACE_TOOLS:
+                    if Operation.DIAGNOSE not in self.configuration.application.allowed_operations:
+                        raise UnsupportedCapabilityError()
+                    return await self.trace.execute(
+                        trace_operation or TraceOperation(),
+                        context,
+                        self.configuration.mcp.server.authorization.permissions,
+                        bool(self.gateway_discovery.adapters(context.environment_id)),
+                    )
                 if context.operation in TROUBLESHOOTING_TOOLS:
                     if Operation.DIAGNOSE not in self.configuration.application.allowed_operations:
                         raise UnsupportedCapabilityError()

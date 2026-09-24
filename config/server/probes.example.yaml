@@ -1,0 +1,34 @@
+# Merge fragment: configure a real environment/resource ID before explicit activation.
+probes:
+  enabled: false
+  execution_mode: plan_only
+  limits:
+    max_probes_per_request: 16
+    max_parallel_probes: 2
+    timeout_seconds: 3
+    overall_probe_budget: 15
+    max_addresses: 8
+    max_redirects: 0
+    max_header_bytes: 8192
+  trace:
+    max_hops: 40
+    max_nodes: 40
+    max_branches: 8
+    max_depth: 3
+  policy:
+    environments:
+      - environment_id: development
+        allowed_hosts: [backend.example.internal]
+        allowed_networks: [10.20.0.0/16]
+        denied_networks: [169.254.0.0/16]
+        allowed_ports: [443]
+        allowed_protocols: [https]
+  endpoints:
+    - id: approved-backend
+      environment_id: development
+      resource_id: replace-with-canonical-resource-id
+      host: backend.example.internal
+      port: 443
+      protocol: https
+      method: HEAD
+      path: /

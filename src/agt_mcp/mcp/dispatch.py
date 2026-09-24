@@ -15,6 +15,7 @@ from agt_mcp.mcp.error_mapping import error_code
 from agt_mcp.mcp.responses import ToolResponse
 from agt_mcp.rag.contracts import RetrievalQuery
 from agt_mcp.services.runtime import Runtime
+from agt_mcp.trace.models import TraceOperation
 from agt_mcp.troubleshooting.models import TroubleshootingOperation
 
 
@@ -34,6 +35,7 @@ class Dispatcher:
         knowledge_query: RetrievalQuery | None = None,
         correlation_operation: CorrelationOperation | None = None,
         troubleshooting_operation: TroubleshootingOperation | None = None,
+        trace_operation: TraceOperation | None = None,
     ) -> ToolResponse:
         context = create_context(self.runtime.configuration, tool, environment_id, correlation_id)
         started = monotonic()
@@ -41,7 +43,9 @@ class Dispatcher:
         code: str | None = None
         try:
             data = (
-                await self.runtime.execute(
+                await self.runtime.execute(context, resource_id, trace_operation=trace_operation)
+                if trace_operation is not None
+                else await self.runtime.execute(
                     context, resource_id, troubleshooting_operation=troubleshooting_operation
                 )
                 if troubleshooting_operation is not None

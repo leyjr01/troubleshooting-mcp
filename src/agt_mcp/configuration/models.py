@@ -7,6 +7,7 @@ from pydantic import Field, StringConstraints, model_validator
 from agt_mcp.configuration.correlation import CorrelationConfig
 from agt_mcp.configuration.gateway import GatewayDiscoveryConfig
 from agt_mcp.configuration.knowledge import KnowledgeLimits, KnowledgeSourceConfig
+from agt_mcp.configuration.probes import ProbesConfig
 from agt_mcp.configuration.runtime import RuntimeEnvironment
 from agt_mcp.configuration.server import MCPConfig
 from agt_mcp.configuration.troubleshooting import TroubleshootingConfig
@@ -89,9 +90,15 @@ class Configuration(Model):
     knowledge_limits: KnowledgeLimits = KnowledgeLimits()
     correlation: CorrelationConfig = CorrelationConfig()
     troubleshooting: TroubleshootingConfig = TroubleshootingConfig()
+    probes: ProbesConfig = ProbesConfig()
 
     @model_validator(mode="after")
     def references(self) -> Self:
+        environments = {e.id for e in self.environments}
+        if any(e.environment_id not in environments for e in self.probes.endpoints) or any(
+            p.environment_id not in environments for p in self.probes.policy.environments
+        ):
+            raise ValueError("unknown probe environment")
         if len({s.id for s in self.knowledge_sources}) != len(self.knowledge_sources):
             raise ValueError("duplicate knowledge source")
         if any(

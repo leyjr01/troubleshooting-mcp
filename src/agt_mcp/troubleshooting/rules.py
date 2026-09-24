@@ -168,7 +168,23 @@ def reference(view: EvidenceView, h: HypothesisInstance) -> Assessment:
 
 
 Rule = Callable[[EvidenceView, HypothesisInstance], Assessment]
+
+
+def probe_tls(view: EvidenceView, h: HypothesisInstance) -> Assessment:
+    support = view.select(h.resources, signal=SignalCode.PROBE_TLS_FAILED)
+    contra = view.select(h.resources, signal=SignalCode.PROBE_TLS_VERIFIED)
+    return Assessment(support, contra, () if support or contra else ("tls_verification",))
+
+
+def probe_tcp(view: EvidenceView, h: HypothesisInstance) -> Assessment:
+    support = view.select(h.resources, signal=SignalCode.PROBE_TCP_FAILED)
+    contra = view.select(h.resources, signal=SignalCode.PROBE_TCP_CONNECTED)
+    return Assessment(support, contra, () if support or contra else ("tcp_connectivity",))
+
+
 RULES: dict[RuleKind, Rule] = {
+    RuleKind.PROBE_TLS: probe_tls,
+    RuleKind.PROBE_TCP: probe_tcp,
     RuleKind.AVAILABILITY: availability,
     RuleKind.ENDPOINT: endpoint,
     RuleKind.ROUTING: routing,

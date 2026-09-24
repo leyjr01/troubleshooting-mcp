@@ -35,6 +35,9 @@ class HypothesisEvaluator:
         if definition.rule == RuleKind.EXTERNAL:
             status = EvaluationStatus.INCONCLUSIVE
             reasons.append("external_connectivity_unverified")
+        elif definition.rule in {RuleKind.PROBE_TLS, RuleKind.PROBE_TCP} and missing:
+            status = EvaluationStatus.INCONCLUSIVE
+            reasons.append("network_probe_evidence_missing")
         elif limited or incompatible:
             status = EvaluationStatus.INCONCLUSIVE
             reasons.append("conflicting_or_limited_evidence")

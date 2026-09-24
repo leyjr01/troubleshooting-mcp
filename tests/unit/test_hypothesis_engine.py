@@ -7,6 +7,7 @@ from agt_mcp.core.models import ResourceKind
 from agt_mcp.correlation.models import CorrelationLink, SignalCode, TimeWindow
 from agt_mcp.troubleshooting.catalog import HypothesisCatalog
 from agt_mcp.troubleshooting.models import RuleKind
+from agt_mcp.troubleshooting.network_hypotheses import NetworkHypothesisProvider
 from agt_mcp.troubleshooting.rules import RULES, Assessment
 from tests.correlation_support import NOW, evidence, provenance, query
 from tests.troubleshooting_support import catalog, diagnose, diagnostic_snapshot, engine, hypothesis
@@ -14,7 +15,9 @@ from tests.troubleshooting_support import catalog, diagnose, diagnostic_snapshot
 
 def test_catalog_is_extensible_unique_and_declarative():
     known = catalog()
-    assert {d.rule for d in known.definitions} == set(RuleKind)
+    assert {
+        d.rule for d in (*known.definitions, *NetworkHypothesisProvider().definitions())
+    } == set(RuleKind)
     assert len(known.by_id) == 15
     assert all(d.required_evidence and d.optional_evidence for d in known.definitions)
 
