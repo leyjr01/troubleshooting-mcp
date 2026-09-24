@@ -10,6 +10,10 @@ from agt_mcp.core.operations import OperationContext
 
 
 class Capability(StrEnum):
+    OBSERVABILITY_LOGS = "observability.logs.read"
+    OBSERVABILITY_METRICS = "observability.metrics.read"
+    OBSERVABILITY_TRACES = "observability.traces.read"
+    OBSERVABILITY_TIMELINE = "observability.timeline.read"
     TRACE_READ = "trace.read"
     PROBE_PLAN = "probe.plan"
     PROBE_EXECUTE = "probe.execute.active_readonly"
@@ -36,6 +40,11 @@ class Capability(StrEnum):
 
 
 class ToolName(StrEnum):
+    INSPECT_OBSERVABILITY = "inspect_observability"
+    INSPECT_LOGS = "inspect_logs"
+    INSPECT_METRICS = "inspect_metrics"
+    INSPECT_TRACE = "inspect_trace"
+    BUILD_EVIDENCE_TIMELINE = "build_evidence_timeline"
     TRACE_RESOURCE = "trace_resource"
     TRACE_GATEWAY_COMPONENT = "trace_gateway_component"
     PLAN_PROBES = "plan_probes"
@@ -140,6 +149,16 @@ TRACE_TOOLS = frozenset(
     }
 )
 LEGACY_TOOLS -= TRACE_TOOLS
+OBSERVABILITY_TOOLS = frozenset(
+    {
+        ToolName.INSPECT_OBSERVABILITY,
+        ToolName.INSPECT_LOGS,
+        ToolName.INSPECT_METRICS,
+        ToolName.INSPECT_TRACE,
+        ToolName.BUILD_EVIDENCE_TIMELINE,
+    }
+)
+LEGACY_TOOLS -= OBSERVABILITY_TOOLS
 
 TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
     ToolDefinition(
@@ -191,6 +210,23 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         required_capabilities=frozenset({Capability.GATEWAY_DISCOVER}),
         required_permissions=frozenset({Capability.GATEWAY_DISCOVER}),
     ),
+)
+
+TOOL_DEFINITIONS += tuple(
+    ToolDefinition(
+        name=name,
+        description="Read bounded scoped observability evidence",
+        category="observability",
+        required_capabilities=frozenset({capability}),
+        required_permissions=frozenset({capability}),
+    )
+    for name, capability in (
+        (ToolName.INSPECT_OBSERVABILITY, Capability.OBSERVABILITY_TIMELINE),
+        (ToolName.BUILD_EVIDENCE_TIMELINE, Capability.OBSERVABILITY_TIMELINE),
+        (ToolName.INSPECT_LOGS, Capability.OBSERVABILITY_LOGS),
+        (ToolName.INSPECT_METRICS, Capability.OBSERVABILITY_METRICS),
+        (ToolName.INSPECT_TRACE, Capability.OBSERVABILITY_TRACES),
+    )
 )
 
 TOOL_DEFINITIONS += tuple(

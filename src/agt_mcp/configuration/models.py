@@ -7,6 +7,7 @@ from pydantic import Field, StringConstraints, model_validator
 from agt_mcp.configuration.correlation import CorrelationConfig
 from agt_mcp.configuration.gateway import GatewayDiscoveryConfig
 from agt_mcp.configuration.knowledge import KnowledgeLimits, KnowledgeSourceConfig
+from agt_mcp.configuration.observability import ObservabilityConfig
 from agt_mcp.configuration.probes import ProbesConfig
 from agt_mcp.configuration.runtime import RuntimeEnvironment
 from agt_mcp.configuration.server import MCPConfig
@@ -91,10 +92,13 @@ class Configuration(Model):
     correlation: CorrelationConfig = CorrelationConfig()
     troubleshooting: TroubleshootingConfig = TroubleshootingConfig()
     probes: ProbesConfig = ProbesConfig()
+    observability: ObservabilityConfig = ObservabilityConfig()
 
     @model_validator(mode="after")
     def references(self) -> Self:
         environments = {e.id for e in self.environments}
+        if any(s.environment_id not in environments for s in self.observability.sources):
+            raise ValueError("unknown observability environment")
         if any(e.environment_id not in environments for e in self.probes.endpoints) or any(
             p.environment_id not in environments for p in self.probes.policy.environments
         ):

@@ -21,6 +21,7 @@ from agt_mcp.core.errors import (
 from agt_mcp.core.execution import (
     CORRELATION_TOOLS,
     KNOWLEDGE_TOOLS,
+    OBSERVABILITY_TOOLS,
     RUNTIME_TOOLS,
     SEMANTIC_TOOLS,
     TOOL_DEFINITIONS,
@@ -41,6 +42,7 @@ from agt_mcp.gateways.threescale.hypotheses import ThreeScaleHypothesisProvider
 from agt_mcp.gateways.threescale.models import GatewayQuery
 from agt_mcp.knowledge.composition import build_knowledge
 from agt_mcp.knowledge.models import SourceType
+from agt_mcp.observability.models import ObservabilityQuery
 from agt_mcp.probes.planner import ProbePlanner
 from agt_mcp.probes.policy import ProbePolicy
 from agt_mcp.probes.runner import ProbeRunner
@@ -53,6 +55,8 @@ from agt_mcp.services.correlation_providers import (
 )
 from agt_mcp.services.discovery import RuntimeDiscoveryService
 from agt_mcp.services.gateway_discovery import GatewayDiscoveryService
+from agt_mcp.services.observability import ObservabilityCorrelationService
+from agt_mcp.services.observability_composition import build_observability
 from agt_mcp.services.registry import AdapterRegistry
 from agt_mcp.services.trace import TraceService
 from agt_mcp.services.troubleshooting import TroubleshootingService
@@ -114,6 +118,12 @@ class Runtime:
             ProbeRunner(policy, executor),
         )
 
+        self.observability = ObservabilityCorrelationService(
+            configuration.observability,
+            self.trace,
+            build_observability(configuration.observability),
+        )
+
     @asynccontextmanager
     async def lifespan(self) -> AsyncIterator[None]:
         if self.ready:
@@ -171,6 +181,11 @@ class Runtime:
         available: set[Capability] = set()
         for tool in TOOL_DEFINITIONS:
             if tool.name in settings.enabled_tools:
+                if (
+                    tool.name in OBSERVABILITY_TOOLS
+                    and Operation.DIAGNOSE not in self.configuration.application.allowed_operations
+                ):
+                    continue
                 if tool.name in TRACE_TOOLS and (
                     Operation.DIAGNOSE not in self.configuration.application.allowed_operations
                     or (
@@ -250,6 +265,7 @@ class Runtime:
         correlation_operation: CorrelationOperation | None = None,
         troubleshooting_operation: TroubleshootingOperation | None = None,
         trace_operation: TraceOperation | None = None,
+        observability_query: ObservabilityQuery | None = None,
     ) -> dict[str, JsonValue]:
         self.authorize(context)
         if not self.ready:
@@ -259,6 +275,18 @@ class Runtime:
             raise TimeoutError()
         try:
             async with asyncio.timeout(remaining):
+                if context.operation in OBSERVABILITY_TOOLS:
+                    if (
+                        Operation.DIAGNOSE not in self.configuration.application.allowed_operations
+                        or observability_query is None
+                    ):
+                        raise UnsupportedCapabilityError()
+                    return await self.observability.execute(
+                        observability_query,
+                        context,
+                        self.configuration.mcp.server.authorization.permissions,
+                        bool(self.gateway_discovery.adapters(context.environment_id)),
+                    )
                 if context.operation in TRACE_TOOLS:
                     if Operation.DIAGNOSE not in self.configuration.application.allowed_operations:
                         raise UnsupportedCapabilityError()

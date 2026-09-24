@@ -94,7 +94,9 @@ class ObservedState(Model):
 class EvidenceAtom(Model):
     evidence: Evidence
     occurred_at: AwareDatetime | None
-    kind: Literal["event", "status", "observation"] = "observation"
+    kind: Literal["event", "status", "observation", "log", "metric", "trace", "probe"] = Field(
+        default="observation"
+    )
     state: Literal["unavailable", "ready", "unknown"] = "unknown"
     # Provider groups mirrored observations from the same resource/source conservatively.
     origin: Identifier

@@ -11,6 +11,7 @@ from agt_mcp.mcp.tools.correlation import register_correlation_tools
 from agt_mcp.mcp.tools.gateway import register_gateway_tools
 from agt_mcp.mcp.tools.inventory import register_tools
 from agt_mcp.mcp.tools.knowledge import register_knowledge_tools
+from agt_mcp.mcp.tools.observability import register_observability_tools
 from agt_mcp.mcp.tools.runtime import register_runtime_tools
 from agt_mcp.mcp.tools.trace import register_trace_tools
 from agt_mcp.mcp.tools.troubleshooting import register_troubleshooting_tools
@@ -38,4 +39,5 @@ def create_server(runtime: Runtime) -> FastMCP:
     register_correlation_tools(server, Dispatcher(runtime))
     register_troubleshooting_tools(server, Dispatcher(runtime))
     register_trace_tools(server, Dispatcher(runtime))
+    register_observability_tools(server, Dispatcher(runtime))
     return server

@@ -6,6 +6,7 @@ from agt_mcp.correlation.models import (
     CorrelationSnapshot,
     EvidenceAtom,
     SignalCode,
+    TimeWindow,
 )
 from agt_mcp.probes.models import ProbeEvidence, ProbeStatus, ProbeType
 from agt_mcp.troubleshooting.engine import TroubleshootingEngine
@@ -17,6 +18,10 @@ async def reevaluate(
     original: CorrelationResult,
     probes: tuple[ProbeEvidence, ...],
     context: ExecutionContext,
+    *,
+    additional: tuple[EvidenceAtom, ...] = (),
+    time_window: TimeWindow | None = None,
+    resource_scope: frozenset[str] | None = None,
 ) -> TroubleshootingResult:
     atoms = []
     states = {s.evidence_id: s for s in original.observed_states}
@@ -30,6 +35,7 @@ async def reevaluate(
                     occurred_at=timeline[evidence.id].timestamp,
                     origin=state.origin if state else "runtime",
                     state=state.state if state else "unknown",
+                    kind=timeline[evidence.id].event_type,
                     signals=state.signals if state else (),
                 )
             )
@@ -55,6 +61,7 @@ async def reevaluate(
                 evidence=probe.evidence,
                 occurred_at=result.timestamp,
                 origin="network-probe",
+                kind="probe",
                 signals=signals,
             )
         )
@@ -62,7 +69,11 @@ async def reevaluate(
         environment_id=original.context.environment_id,
         observed_at=original.context.correlated_at,
         topology=original.topology_context,
-        evidence=tuple(atoms),
+        evidence=tuple(
+            a
+            for a in (*atoms, *additional)
+            if resource_scope is None or a.evidence.resource_id in resource_scope
+        ),
         components=original.component_context,
         links=original.semantic_links,
         warnings=original.warnings,
@@ -72,7 +83,7 @@ async def reevaluate(
         coverage=original.coverage,
     )
     query = original.context.request.model_copy(
-        update={"time_window": None, "include_knowledge": False, "include_history": False}
+        update={"time_window": time_window, "include_knowledge": False, "include_history": False}
     )
     refreshed = await engine.correlation.correlate(query, context, snapshot=snapshot)
     return engine.evaluate(refreshed, context)

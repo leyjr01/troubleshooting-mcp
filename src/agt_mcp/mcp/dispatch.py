@@ -13,6 +13,7 @@ from agt_mcp.gateways.threescale.models import GatewayQuery
 from agt_mcp.mcp.context import create_context
 from agt_mcp.mcp.error_mapping import error_code
 from agt_mcp.mcp.responses import ToolResponse
+from agt_mcp.observability.models import ObservabilityQuery
 from agt_mcp.rag.contracts import RetrievalQuery
 from agt_mcp.services.runtime import Runtime
 from agt_mcp.trace.models import TraceOperation
@@ -36,6 +37,7 @@ class Dispatcher:
         correlation_operation: CorrelationOperation | None = None,
         troubleshooting_operation: TroubleshootingOperation | None = None,
         trace_operation: TraceOperation | None = None,
+        observability_query: ObservabilityQuery | None = None,
     ) -> ToolResponse:
         context = create_context(self.runtime.configuration, tool, environment_id, correlation_id)
         started = monotonic()
@@ -43,7 +45,13 @@ class Dispatcher:
         code: str | None = None
         try:
             data = (
-                await self.runtime.execute(context, resource_id, trace_operation=trace_operation)
+                await self.runtime.execute(
+                    context, resource_id, observability_query=observability_query
+                )
+                if observability_query is not None
+                else await self.runtime.execute(
+                    context, resource_id, trace_operation=trace_operation
+                )
                 if trace_operation is not None
                 else await self.runtime.execute(
                     context, resource_id, troubleshooting_operation=troubleshooting_operation
