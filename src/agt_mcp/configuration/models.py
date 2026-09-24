@@ -9,6 +9,7 @@ from agt_mcp.configuration.gateway import GatewayDiscoveryConfig
 from agt_mcp.configuration.knowledge import KnowledgeLimits, KnowledgeSourceConfig
 from agt_mcp.configuration.runtime import RuntimeEnvironment
 from agt_mcp.configuration.server import MCPConfig
+from agt_mcp.configuration.troubleshooting import TroubleshootingConfig
 from agt_mcp.core.models import Identifier, Model
 from agt_mcp.core.operations import Operation
 from agt_mcp.credentials.providers import CredentialReference
@@ -87,6 +88,7 @@ class Configuration(Model):
     knowledge_sources: tuple[KnowledgeSourceConfig, ...] = ()
     knowledge_limits: KnowledgeLimits = KnowledgeLimits()
     correlation: CorrelationConfig = CorrelationConfig()
+    troubleshooting: TroubleshootingConfig = TroubleshootingConfig()
 
     @model_validator(mode="after")
     def references(self) -> Self:

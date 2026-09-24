@@ -19,6 +19,7 @@ from agt_mcp.correlation.models import (
     CorrelationWarning,
     EvidenceAtom,
     HistoricalSimilarity,
+    SignalCode,
 )
 from agt_mcp.correlation.rules import identity
 from agt_mcp.gateways.threescale.models import GatewayQuery
@@ -33,12 +34,15 @@ from agt_mcp.topology.models import Topology
 def atom(item: Evidence, resource: Resource) -> EvidenceAtom:
     event = item.metadata.get("evidence_kind") == "event"
     state = "unknown"
+    signals: list[SignalCode] = []
     if not event:
         if item.metadata.get("signal") == "no_ready_endpoints":
             state = "unavailable"
         elif resource.kind.value == "endpointslice":
             endpoints = resource.details.get("endpoints", [])
             if isinstance(endpoints, list):
+                if not endpoints:
+                    signals.append(SignalCode.ENDPOINTS_EMPTY)
                 flags = [e.get("ready") for e in endpoints if isinstance(e, dict)]
                 state = (
                     "ready"
@@ -50,6 +54,11 @@ def atom(item: Evidence, resource: Resource) -> EvidenceAtom:
         elif resource.kind.value == "pod":
             containers = resource.details.get("containers", [])
             if isinstance(containers, list):
+                if any(
+                    isinstance(c, dict) and c.get("waiting_reason") == "CrashLoopBackOff"
+                    for c in containers
+                ):
+                    signals.append(SignalCode.CRASH_LOOP)
                 flags = [c.get("ready") for c in containers if isinstance(c, dict)]
                 state = (
                     "unavailable"
@@ -58,6 +67,11 @@ def atom(item: Evidence, resource: Resource) -> EvidenceAtom:
                     if flags and all(v is True for v in flags)
                     else "unknown"
                 )
+        elif resource.kind.value == "persistentvolumeclaim":
+            if resource.status in {"Pending", "Lost"}:
+                signals.append(SignalCode.PVC_NOT_BOUND)
+            elif resource.status == "Bound":
+                signals.append(SignalCode.PVC_BOUND)
         elif resource.kind.value == "deployment":
             unavailable, ready = (
                 resource.details.get("unavailableReplicas"),
@@ -80,6 +94,7 @@ def atom(item: Evidence, resource: Resource) -> EvidenceAtom:
         kind="event" if event else "status",
         state=cast(Literal["unavailable", "ready", "unknown"], state),
         origin=identity("origin", item.source.source_id, item.resource_id),
+        signals=tuple(signals),
     )
 
 
@@ -141,6 +156,10 @@ class RuntimeCorrelationProvider:
                         type=c.type.value,
                         resources=tuple(r for r in c.runtime_resources if r in allowed),
                         provenance=tuple(e.provenance for e in c.evidence),
+                        expected=c.expected,
+                        external=c.external,
+                        presence=c.status.value,
+                        dependencies=c.dependencies,
                     )
                     for c in installation.components
                 )
@@ -193,6 +212,7 @@ class RuntimeCorrelationProvider:
                         target=identity("unobserved", unresolved.target.model_dump_json()),
                         relation="unresolved_" + unresolved.resolution,
                         provenance=sources[0],
+                        target_kind=unresolved.target.kind,
                     ),
                 )
         return CorrelationSnapshot(
@@ -218,6 +238,11 @@ class RuntimeCorrelationProvider:
             installation_id=installation.id if installation else None,
             gateway_type="threescale" if installation else None,
             version=installation.version if installation else None,
+            coverage=tuple(
+                c
+                for c in snapshot.categories
+                if c.namespace in {n.namespace for n in resources.values()}
+            ),
         )
 
 

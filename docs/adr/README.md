@@ -17,3 +17,4 @@
 - [ADR-0015 — Knowledge and RAG Architecture](0015-knowledge-and-rag-architecture.md)
 - [ADR-0016 — Knowledge Security and Trust Boundary](0016-knowledge-security-trust-boundary.md)
 - [ADR-0017 — Evidence Correlation Engine](0017-evidence-correlation-engine.md)
+- [ADR-0018 — Hypothesis and Troubleshooting Architecture](0018-hypothesis-and-troubleshooting-architecture.md)

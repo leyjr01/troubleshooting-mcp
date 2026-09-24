@@ -1,5 +1,11 @@
 # Future MCP tool catalog
 
+Sprint 6 implements opt-in diagnose_component, diagnose_gateway, diagnose_api,
+explain_hypothesis and get_troubleshooting_plan. Executable contracts are in
+[troubleshooting engine](troubleshooting-engine.md). Unmapped APIs return an explicit
+LIMITED result; plans never execute actions. Historical catalog entries below remain
+conceptual wherever their signatures differ from these implemented contracts.
+
 Sprint 5 implements opt-in correlate_evidence, get_correlation_timeline and
 explain_correlation. Their executable contracts, permissions and bounded cache are
 specified in [evidence correlation](evidence-correlation.md).

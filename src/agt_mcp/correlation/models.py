@@ -6,7 +6,7 @@ from typing import Literal, Self
 from pydantic import AwareDatetime, Field, model_validator
 
 from agt_mcp.core.models import Confidence, Evidence, Identifier, Incident, Model, Provenance, Text
-from agt_mcp.core.runtime import RuntimeName
+from agt_mcp.core.runtime import CategoryResult, RuntimeName
 from agt_mcp.rag.contracts import KnowledgeResult
 from agt_mcp.topology.models import Topology
 
@@ -73,6 +73,20 @@ class RelationType(StrEnum):
     DEPENDENCY = "DEPENDENCY"
 
 
+class SignalCode(StrEnum):
+    CRASH_LOOP = "crash_loop"
+    PVC_NOT_BOUND = "pvc_not_bound"
+    PVC_BOUND = "pvc_bound"
+    ENDPOINTS_EMPTY = "endpoints_empty"
+
+
+class ObservedState(Model):
+    evidence_id: Identifier
+    state: Literal["unavailable", "ready", "unknown"]
+    origin: Identifier
+    signals: tuple[SignalCode, ...] = ()
+
+
 class EvidenceAtom(Model):
     evidence: Evidence
     occurred_at: AwareDatetime | None
@@ -80,6 +94,7 @@ class EvidenceAtom(Model):
     state: Literal["unavailable", "ready", "unknown"] = "unknown"
     # Provider groups mirrored observations from the same resource/source conservatively.
     origin: Identifier
+    signals: tuple[SignalCode, ...] = ()
 
 
 class ComponentContext(Model):
@@ -88,6 +103,10 @@ class ComponentContext(Model):
     type: Identifier
     resources: tuple[Identifier, ...]
     provenance: tuple[Provenance, ...]
+    expected: bool | None = None
+    external: bool = False
+    presence: Identifier = "UNKNOWN"
+    dependencies: tuple[Identifier, ...] = ()
 
 
 class CorrelationLink(Model):
@@ -96,6 +115,7 @@ class CorrelationLink(Model):
     target: Identifier
     relation: Identifier
     provenance: Provenance
+    target_kind: Identifier | None = None
 
 
 class CorrelationSnapshot(Model):
@@ -109,6 +129,7 @@ class CorrelationSnapshot(Model):
     installation_id: Identifier | None = None
     gateway_type: Identifier | None = None
     version: Identifier | None = None
+    coverage: tuple[CategoryResult, ...] = ()
 
 
 class CorrelatedKnowledge(Model):
@@ -184,12 +205,29 @@ class CorrelationResult(Model):
     semantic_links: tuple[CorrelationLink, ...] = ()
     warnings: tuple[CorrelationWarning, ...]
     provenance: tuple[Provenance, ...]
+    observed_states: tuple[ObservedState, ...] = ()
+    component_context: tuple[ComponentContext, ...] = ()
+    installation_id: Identifier | None = None
+    gateway_type: Identifier | None = None
+    version: Identifier | None = None
+    coverage: tuple[CategoryResult, ...] = ()
 
     @model_validator(mode="after")
     def lineage(self) -> Self:
         env = self.context.environment_id
         nodes = {n.id for n in self.topology_context.nodes}
         evidence = {e.id: e for s in self.evidence_sets for e in s.evidence}
+        if any(s.evidence_id not in evidence for s in self.observed_states):
+            raise ValueError("unresolved observed state")
+        if any(c.installation_id != self.installation_id for c in self.component_context):
+            raise ValueError("cross-installation component context")
+        if any(
+            not set(c.resources) <= nodes or any(p.environment_id != env for p in c.provenance)
+            for c in self.component_context
+        ):
+            raise ValueError("invalid semantic context scope")
+        if any(e.provenance.environment_id != env for e in self.semantic_links):
+            raise ValueError("invalid semantic link scope")
         known = {k.id for k in self.knowledge}
         history = {h.id for h in self.historical_matches}
         links = {e.id for e in self.topology_context.edges} | {e.id for e in self.semantic_links}

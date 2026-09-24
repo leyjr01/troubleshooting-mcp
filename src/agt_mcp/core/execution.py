@@ -10,6 +10,7 @@ from agt_mcp.core.operations import OperationContext
 
 
 class Capability(StrEnum):
+    TROUBLESHOOTING_READ = "troubleshooting.read"
     CORRELATION_READ = "correlation.read"
     KNOWLEDGE_INTERNAL = "knowledge.search.internal"
     KNOWLEDGE_OFFICIAL = "knowledge.search.official"
@@ -32,6 +33,11 @@ class Capability(StrEnum):
 
 
 class ToolName(StrEnum):
+    DIAGNOSE_COMPONENT = "diagnose_component"
+    DIAGNOSE_GATEWAY = "diagnose_gateway"
+    DIAGNOSE_API = "diagnose_api"
+    EXPLAIN_HYPOTHESIS = "explain_hypothesis"
+    GET_TROUBLESHOOTING_PLAN = "get_troubleshooting_plan"
     CORRELATE_EVIDENCE = "correlate_evidence"
     GET_CORRELATION_TIMELINE = "get_correlation_timeline"
     EXPLAIN_CORRELATION = "explain_correlation"
@@ -106,6 +112,16 @@ CORRELATION_TOOLS = frozenset(
 LEGACY_TOOLS = (
     frozenset(ToolName) - RUNTIME_TOOLS - SEMANTIC_TOOLS - KNOWLEDGE_TOOLS - CORRELATION_TOOLS
 )
+TROUBLESHOOTING_TOOLS = frozenset(
+    {
+        ToolName.DIAGNOSE_COMPONENT,
+        ToolName.DIAGNOSE_GATEWAY,
+        ToolName.DIAGNOSE_API,
+        ToolName.EXPLAIN_HYPOTHESIS,
+        ToolName.GET_TROUBLESHOOTING_PLAN,
+    }
+)
+LEGACY_TOOLS -= TROUBLESHOOTING_TOOLS
 
 TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
     ToolDefinition(
@@ -157,6 +173,17 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         required_capabilities=frozenset({Capability.GATEWAY_DISCOVER}),
         required_permissions=frozenset({Capability.GATEWAY_DISCOVER}),
     ),
+)
+
+TOOL_DEFINITIONS += tuple(
+    ToolDefinition(
+        name=name,
+        description="Read-only evidence-based hypothesis evaluation and planning",
+        category="troubleshooting",
+        required_capabilities=frozenset({Capability.TROUBLESHOOTING_READ}),
+        required_permissions=frozenset({Capability.TROUBLESHOOTING_READ}),
+    )
+    for name in sorted(TROUBLESHOOTING_TOOLS)
 )
 
 TOOL_DEFINITIONS += tuple(

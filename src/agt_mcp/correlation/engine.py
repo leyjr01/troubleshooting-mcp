@@ -27,6 +27,7 @@ from agt_mcp.correlation.models import (
     EvidenceAtom,
     EvidenceSet,
     HistoricalSimilarity,
+    ObservedState,
     RelationType,
     TimelineItem,
     TimeWindow,
@@ -150,7 +151,7 @@ class EvidenceCorrelationEngine:
             roots = nodes
         if query.resource_id and query.resource_id not in roots:
             raise ResourceNotFound()
-        if not roots:
+        if not roots and not query.component_id:
             raise ResourceNotFound()
         distances = dict.fromkeys(sorted(roots)[: self.config.max_resources], 0)
         for depth in range(1, query.topology_depth + 1):
@@ -299,7 +300,7 @@ class EvidenceCorrelationEngine:
         components = tuple(
             c
             for c in sorted(snapshot.components, key=lambda c: c.id)
-            if set(c.resources) & distances.keys()
+            if set(c.resources) & distances.keys() or c.id == context.request.component_id
         )
         snapshot_current = (
             context.time_window.start <= snapshot.observed_at <= context.time_window.end
@@ -468,5 +469,19 @@ class EvidenceCorrelationEngine:
                 )
             ),
             provenance=provenance,
+            observed_states=tuple(
+                ObservedState(
+                    evidence_id=a.evidence.id, state=a.state, origin=a.origin, signals=a.signals
+                )
+                for a in all_atoms
+            ),
+            component_context=tuple(
+                c.model_copy(update={"resources": tuple(r for r in c.resources if r in distances)})
+                for c in components
+            ),
+            installation_id=snapshot.installation_id,
+            gateway_type=snapshot.gateway_type,
+            version=snapshot.version,
+            coverage=snapshot.coverage,
         )
         return result.model_copy(update={"id": identity("correlation", result.model_dump_json())})

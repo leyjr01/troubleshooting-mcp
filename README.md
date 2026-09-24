@@ -22,10 +22,15 @@ Veja [contratos e limites](docs/architecture/evidence-correlation.md),
 
 ## Goals e non-goals
 
+Sprint 6 adiciona hipóteses determinísticas, candidatos sustentados por evidências
+e planos de troubleshooting não executáveis. Cinco tools MCP expõem diagnóstico,
+explicação e planejamento; veja [contratos](docs/architecture/troubleshooting-engine.md)
+e [validação da Sprint 6](docs/development/sprint-6-validation.md).
+
 Permitir múltiplos ambientes, clusters, gateways e fontes com conclusões
 rastreáveis. A integração runtime permite leituras Kubernetes explicitamente
-configuradas. Bancos reais, Git remoto, LLMs, remediação e diagnóstico causal
-permanecem fora do escopo. Descoberta 3scale não é diagnóstico de troubleshooting.
+configuradas. Bancos reais, Git remoto, LLMs, remediação e confirmação automática
+da causa de um incidente permanecem fora do escopo.
 
 ## Architecture
 
@@ -48,7 +53,7 @@ Veja [arquitetura](docs/architecture/overview.md) e [ADRs](docs/adr/README.md).
 - configuration, credentials, security: configuração, resolução explícita de segredos e fronteiras locais.
 - evidence, topology: modelos e validação de referências.
 - mapping, rag, knowledge: mapeamento de incidentes, fontes e recuperação local; mcp: servidor.
-- diagnostics: extensão futura para correlação explícita de evidências.
+- correlation, troubleshooting: correlação, hipóteses e planos determinísticos.
 - observability: eventos JSON sem payload bruto.
 - config, mappings: exemplos artificiais; knowledge: convenções para repositórios futuros.
 - tests/unit, contract, integration, scenarios, fixtures: validações offline.
@@ -103,7 +108,7 @@ operacional local. Nenhum modo de acesso remoto está disponível nesta sprint.
 ## Testing e current status
 
 Fixtures são sintéticas, nenhum teste exige rede. Coverage mínimo configurado
-em 94%, com branches e relatório de linhas; cobertura não prova segurança produtiva.
+em 95,5%, com branches e relatório de linhas; cobertura não prova segurança produtiva.
 Testes de integração incluem cliente MCP em memória, subprocesso STDIO e HTTP
 em loopback. O SDK Kubernetes real usa respostas simuladas nos testes; nenhum
 cluster foi acessado durante a validação. A matriz de cenários
@@ -156,8 +161,9 @@ Não resolve prompt injection por semântica: não há chamada ao modelo.
 4. Sprint 3: descoberta e topologia semântica 3scale/APIcast.
 5. Sprint 4: fontes de conhecimento, mappings de incidentes e RAG local com ACL/provenance.
 6. Sprint 5: Evidence Correlation Engine determinístico, sem diagnóstico causal.
-7. Próxima: Sprint 6 — Hypothesis & Troubleshooting Engine.
-8. Futuro: autenticação corporativa MCP, observabilidade externa e hardening operacional.
+7. Sprint 6: Hypothesis & Troubleshooting Engine, candidatos e planos não executáveis.
+8. Próxima: Sprint 7 — Virtual Trace & Active/Passive Probe Foundation.
+9. Futuro: autenticação corporativa MCP, observabilidade externa e hardening operacional.
 
 Todos os textos do projeto são UTF-8. No Windows PowerShell use
 Get-Content -Encoding UTF8 para leitura explícita.
