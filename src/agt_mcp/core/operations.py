@@ -8,6 +8,7 @@ from agt_mcp.core.models import Identifier, Model, Text
 
 
 class Operation(StrEnum):
+    CORRELATE = "correlate"
     KNOWLEDGE_SEARCH = "knowledge_search"
     KNOWLEDGE_SOURCES = "knowledge_sources"
     COMPONENTS = "gateway_components"

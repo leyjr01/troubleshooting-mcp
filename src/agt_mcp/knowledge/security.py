@@ -6,7 +6,7 @@ import re
 class KnowledgeRedactor:
     version = "knowledge-redaction-1"
 
-    def redact(self, text: str) -> str:
+    def redact(self, text: str, *, opaque_values: bool = True) -> str:
         text = re.sub(
             r"-----BEGIN [A-Z ]*PRIVATE KEY-----.*?(?:-----END [A-Z ]*PRIVATE KEY-----|\Z)",
             "[REDACTED PRIVATE KEY]",
@@ -33,10 +33,11 @@ class KnowledgeRedactor:
         )
         text = re.sub(r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b", "[REDACTED EMAIL]", text)
         # Opaque long mixed strings are not needed in operational excerpts.
-        text = re.sub(
-            r"\b(?=[A-Za-z0-9_+/=-]{32,}\b)(?=[A-Za-z0-9_+/=-]*[A-Za-z])"
-            r"(?=[A-Za-z0-9_+/=-]*[0-9])[A-Za-z0-9_+/=-]{32,}\b",
-            "[REDACTED OPAQUE VALUE]",
-            text,
-        )
+        if opaque_values:
+            text = re.sub(
+                r"\b(?=[A-Za-z0-9_+/=-]{32,}\b)(?=[A-Za-z0-9_+/=-]*[A-Za-z])"
+                r"(?=[A-Za-z0-9_+/=-]*[0-9])[A-Za-z0-9_+/=-]{32,}\b",
+                "[REDACTED OPAQUE VALUE]",
+                text,
+            )
         return text

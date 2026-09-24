@@ -16,6 +16,7 @@ from agt_mcp.core.models import (
     Recommendation,
     Text,
 )
+from agt_mcp.correlation.models import CorrelationResult
 from agt_mcp.topology.models import Topology
 
 
@@ -35,10 +36,13 @@ class IncidentBundle(Model):
     findings: tuple[Finding, ...] = ()
     recommendations: tuple[Recommendation, ...] = ()
     timeline: tuple[TimelineEntry, ...] = ()
+    correlations: tuple[CorrelationResult, ...] = ()
 
     @model_validator(mode="after")
     def validate_lineage(self) -> Self:
         environment = self.environment.id
+        if any(result.context.environment_id != environment for result in self.correlations):
+            raise ValueError("cross-environment correlation")
         items: tuple[Evidence | Hypothesis | Finding | Recommendation, ...] = (
             *self.evidence,
             *self.hypotheses,

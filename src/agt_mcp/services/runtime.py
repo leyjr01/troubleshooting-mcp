@@ -19,6 +19,7 @@ from agt_mcp.core.errors import (
     UnsupportedCapabilityError,
 )
 from agt_mcp.core.execution import (
+    CORRELATION_TOOLS,
     KNOWLEDGE_TOOLS,
     RUNTIME_TOOLS,
     SEMANTIC_TOOLS,
@@ -29,12 +30,20 @@ from agt_mcp.core.execution import (
 )
 from agt_mcp.core.operations import Operation, OperationContext
 from agt_mcp.core.runtime import RuntimeQuery
+from agt_mcp.correlation.engine import EvidenceCorrelationEngine
+from agt_mcp.correlation.models import CorrelationOperation
 from agt_mcp.datasources.base.adapter import DataSourceAdapter
 from agt_mcp.gateways.base.adapter import GatewayAdapter
 from agt_mcp.gateways.threescale.models import GatewayQuery
 from agt_mcp.knowledge.composition import build_knowledge
 from agt_mcp.knowledge.models import SourceType
 from agt_mcp.rag.contracts import RetrievalQuery
+from agt_mcp.services.correlation import CorrelationService
+from agt_mcp.services.correlation_providers import (
+    HistoryBridge,
+    KnowledgeBridge,
+    RuntimeCorrelationProvider,
+)
 from agt_mcp.services.discovery import RuntimeDiscoveryService
 from agt_mcp.services.gateway_discovery import GatewayDiscoveryService
 from agt_mcp.services.registry import AdapterRegistry
@@ -55,6 +64,14 @@ class Runtime:
         self.discovery = RuntimeDiscoveryService({})
         self.gateway_discovery = GatewayDiscoveryService(gateways)
         self.knowledge = build_knowledge(configuration)
+        self.correlation = CorrelationService(
+            EvidenceCorrelationEngine(
+                RuntimeCorrelationProvider(self.discovery, self.gateway_discovery),
+                KnowledgeBridge(self.knowledge, configuration.correlation.max_knowledge_results),
+                HistoryBridge(self.knowledge, configuration.correlation.max_knowledge_results),
+                configuration.correlation,
+            )
+        )
 
     @asynccontextmanager
     async def lifespan(self) -> AsyncIterator[None]:
@@ -113,6 +130,11 @@ class Runtime:
         available: set[Capability] = set()
         for tool in TOOL_DEFINITIONS:
             if tool.name in settings.enabled_tools:
+                if (
+                    tool.name in CORRELATION_TOOLS
+                    and Operation.CORRELATE not in self.configuration.application.allowed_operations
+                ):
+                    continue
                 if tool.name in KNOWLEDGE_TOOLS:
                     operation = (
                         Operation.KNOWLEDGE_SOURCES
@@ -168,6 +190,7 @@ class Runtime:
         runtime_query: RuntimeQuery | None = None,
         gateway_query: GatewayQuery | None = None,
         knowledge_query: RetrievalQuery | None = None,
+        correlation_operation: CorrelationOperation | None = None,
     ) -> dict[str, JsonValue]:
         self.authorize(context)
         if not self.ready:
@@ -177,6 +200,15 @@ class Runtime:
             raise TimeoutError()
         try:
             async with asyncio.timeout(remaining):
+                if context.operation in CORRELATION_TOOLS:
+                    if Operation.CORRELATE not in self.configuration.application.allowed_operations:
+                        raise UnsupportedCapabilityError()
+                    return await self.correlation.execute(
+                        correlation_operation or CorrelationOperation(),
+                        context,
+                        self.configuration.mcp.server.authorization.permissions,
+                        bool(self.gateway_discovery.adapters(context.environment_id)),
+                    )
                 if context.operation in KNOWLEDGE_TOOLS:
                     return await self.execute_knowledge(context, resource_id, knowledge_query)
                 if context.operation in SEMANTIC_TOOLS or (

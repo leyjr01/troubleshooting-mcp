@@ -8,6 +8,7 @@ from time import monotonic
 from agt_mcp.core.errors import SanitizationError
 from agt_mcp.core.execution import KNOWLEDGE_TOOLS, SEMANTIC_TOOLS, ToolName
 from agt_mcp.core.runtime import RuntimeQuery
+from agt_mcp.correlation.models import CorrelationOperation
 from agt_mcp.gateways.threescale.models import GatewayQuery
 from agt_mcp.mcp.context import create_context
 from agt_mcp.mcp.error_mapping import error_code
@@ -30,6 +31,7 @@ class Dispatcher:
         runtime_query: RuntimeQuery | None = None,
         gateway_query: GatewayQuery | None = None,
         knowledge_query: RetrievalQuery | None = None,
+        correlation_operation: CorrelationOperation | None = None,
     ) -> ToolResponse:
         context = create_context(self.runtime.configuration, tool, environment_id, correlation_id)
         started = monotonic()
@@ -37,7 +39,13 @@ class Dispatcher:
         code: str | None = None
         try:
             data = (
-                await self.runtime.execute(context, resource_id, knowledge_query=knowledge_query)
+                await self.runtime.execute(
+                    context, resource_id, correlation_operation=correlation_operation
+                )
+                if correlation_operation is not None
+                else await self.runtime.execute(
+                    context, resource_id, knowledge_query=knowledge_query
+                )
                 if knowledge_query is not None
                 else await self.runtime.execute(context, resource_id, runtime_query, gateway_query)
                 if gateway_query is not None

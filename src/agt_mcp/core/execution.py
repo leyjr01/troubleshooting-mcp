@@ -10,6 +10,7 @@ from agt_mcp.core.operations import OperationContext
 
 
 class Capability(StrEnum):
+    CORRELATION_READ = "correlation.read"
     KNOWLEDGE_INTERNAL = "knowledge.search.internal"
     KNOWLEDGE_OFFICIAL = "knowledge.search.official"
     KNOWLEDGE_ISSUES = "knowledge.issues.read"
@@ -31,6 +32,9 @@ class Capability(StrEnum):
 
 
 class ToolName(StrEnum):
+    CORRELATE_EVIDENCE = "correlate_evidence"
+    GET_CORRELATION_TIMELINE = "get_correlation_timeline"
+    EXPLAIN_CORRELATION = "explain_correlation"
     SEARCH_INTERNAL_KNOWLEDGE = "search_internal_knowledge"
     SEARCH_OFFICIAL_DOCUMENTATION = "search_official_documentation"
     FIND_KNOWN_ISSUE = "find_known_issue"
@@ -96,7 +100,12 @@ KNOWLEDGE_TOOLS = frozenset(
         ToolName.GET_KNOWLEDGE_SOURCE_HEALTH,
     }
 )
-LEGACY_TOOLS = frozenset(ToolName) - RUNTIME_TOOLS - SEMANTIC_TOOLS - KNOWLEDGE_TOOLS
+CORRELATION_TOOLS = frozenset(
+    {ToolName.CORRELATE_EVIDENCE, ToolName.GET_CORRELATION_TIMELINE, ToolName.EXPLAIN_CORRELATION}
+)
+LEGACY_TOOLS = (
+    frozenset(ToolName) - RUNTIME_TOOLS - SEMANTIC_TOOLS - KNOWLEDGE_TOOLS - CORRELATION_TOOLS
+)
 
 TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
     ToolDefinition(
@@ -148,6 +157,24 @@ TOOL_DEFINITIONS: tuple[ToolDefinition, ...] = (
         required_capabilities=frozenset({Capability.GATEWAY_DISCOVER}),
         required_permissions=frozenset({Capability.GATEWAY_DISCOVER}),
     ),
+)
+
+TOOL_DEFINITIONS += tuple(
+    ToolDefinition(
+        name=name,
+        description=description,
+        category="correlation",
+        required_capabilities=frozenset({Capability.CORRELATION_READ}),
+        required_permissions=frozenset({Capability.CORRELATION_READ}),
+    )
+    for name, description in (
+        (
+            ToolName.CORRELATE_EVIDENCE,
+            "Correlate bounded evidence and references without causal diagnosis",
+        ),
+        (ToolName.GET_CORRELATION_TIMELINE, "Read a scoped cached correlation timeline"),
+        (ToolName.EXPLAIN_CORRELATION, "Explain deterministic rules, support and contradictions"),
+    )
 )
 
 TOOL_DEFINITIONS += tuple(

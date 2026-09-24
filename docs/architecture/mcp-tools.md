@@ -1,5 +1,9 @@
 # Future MCP tool catalog
 
+Sprint 5 implements opt-in correlate_evidence, get_correlation_timeline and
+explain_correlation. Their executable contracts, permissions and bounded cache are
+specified in [evidence correlation](evidence-correlation.md).
+
 Sprint 4 implements five opt-in knowledge tools. Their typed inputs, permissions
 and index-only behavior are specified in [knowledge contracts](knowledge-rag.md).
 

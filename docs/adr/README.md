@@ -16,3 +16,4 @@
 - [ADR-0014 — Red Hat 3scale Semantic Discovery](0014-threescale-semantic-discovery.md)
 - [ADR-0015 — Knowledge and RAG Architecture](0015-knowledge-and-rag-architecture.md)
 - [ADR-0016 — Knowledge Security and Trust Boundary](0016-knowledge-security-trust-boundary.md)
+- [ADR-0017 — Evidence Correlation Engine](0017-evidence-correlation-engine.md)

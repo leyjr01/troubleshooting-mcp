@@ -13,6 +13,13 @@ ingestão sanitizada e cinco ferramentas MCP de conhecimento. O índice em memó
 Comece por [PROJECT_STATE.md](PROJECT_STATE.md) e pelas
 [instruções de ingestão](docs/development/knowledge-ingestion.md).
 
+Sprint 5 adiciona correlação determinística de evidências, timeline e três ferramentas
+MCP: correlate_evidence, get_correlation_timeline e explain_correlation. Contradições,
+referências de conhecimento e incidentes históricos permanecem separados de diagnóstico.
+Veja [contratos e limites](docs/architecture/evidence-correlation.md),
+[regras](docs/architecture/correlation-rules.md) e
+[validação da Sprint 5](docs/development/sprint-5-validation.md).
+
 ## Goals e non-goals
 
 Permitir múltiplos ambientes, clusters, gateways e fontes com conclusões
@@ -148,8 +155,9 @@ Não resolve prompt injection por semântica: não há chamada ao modelo.
 3. Sprint 2: descoberta Kubernetes/OpenShift, topology e Evidence de observação.
 4. Sprint 3: descoberta e topologia semântica 3scale/APIcast.
 5. Sprint 4: fontes de conhecimento, mappings de incidentes e RAG local com ACL/provenance.
-6. Sprint 5 recomendada: Evidence Correlation Engine, sem remediação automática.
-7. Futuro: autenticação corporativa MCP, observabilidade externa e hardening operacional.
+6. Sprint 5: Evidence Correlation Engine determinístico, sem diagnóstico causal.
+7. Próxima: Sprint 6 — Hypothesis & Troubleshooting Engine.
+8. Futuro: autenticação corporativa MCP, observabilidade externa e hardening operacional.
 
 Todos os textos do projeto são UTF-8. No Windows PowerShell use
 Get-Content -Encoding UTF8 para leitura explícita.

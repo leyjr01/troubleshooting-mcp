@@ -9,7 +9,6 @@ from agt_mcp.datasources.memory import InMemoryDataSourceAdapter
 from agt_mcp.gateways.base.adapter import GatewayAdapter
 from agt_mcp.gateways.memory import InMemoryGatewayAdapter
 from agt_mcp.gateways.threescale.adapter import ThreeScaleGatewayAdapter
-from agt_mcp.services.discovery import RuntimeDiscoveryService
 from agt_mcp.services.registry import AdapterEntry, AdapterRegistry
 from agt_mcp.services.runtime import Runtime
 
@@ -85,5 +84,5 @@ def build_runtime(configuration: Configuration) -> Runtime:
             )
         )
     runtime = Runtime(configuration, gateways, datasources)
-    runtime.discovery = RuntimeDiscoveryService(runtime_adapters)
+    runtime.discovery.adapters.update(runtime_adapters)
     return runtime

@@ -4,6 +4,7 @@ from typing import Annotated, Literal, Self
 
 from pydantic import Field, StringConstraints, model_validator
 
+from agt_mcp.configuration.correlation import CorrelationConfig
 from agt_mcp.configuration.gateway import GatewayDiscoveryConfig
 from agt_mcp.configuration.knowledge import KnowledgeLimits, KnowledgeSourceConfig
 from agt_mcp.configuration.runtime import RuntimeEnvironment
@@ -85,6 +86,7 @@ class Configuration(Model):
     environments: tuple[RuntimeEnvironment, ...] = ()
     knowledge_sources: tuple[KnowledgeSourceConfig, ...] = ()
     knowledge_limits: KnowledgeLimits = KnowledgeLimits()
+    correlation: CorrelationConfig = CorrelationConfig()
 
     @model_validator(mode="after")
     def references(self) -> Self:

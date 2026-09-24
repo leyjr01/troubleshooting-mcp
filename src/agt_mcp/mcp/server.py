@@ -7,6 +7,7 @@ from fastmcp import FastMCP
 
 from agt_mcp import __version__
 from agt_mcp.mcp.dispatch import Dispatcher
+from agt_mcp.mcp.tools.correlation import register_correlation_tools
 from agt_mcp.mcp.tools.gateway import register_gateway_tools
 from agt_mcp.mcp.tools.inventory import register_tools
 from agt_mcp.mcp.tools.knowledge import register_knowledge_tools
@@ -32,4 +33,5 @@ def create_server(runtime: Runtime) -> FastMCP:
     register_gateway_tools(server, Dispatcher(runtime))
     register_runtime_tools(server, Dispatcher(runtime))
     register_knowledge_tools(server, Dispatcher(runtime))
+    register_correlation_tools(server, Dispatcher(runtime))
     return server

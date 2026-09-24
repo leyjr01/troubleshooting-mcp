@@ -1,7 +1,7 @@
 """Derive declared runtime relationships while raw API objects remain adapter-local."""
 
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from agt_mcp.configuration.runtime import RuntimeLimits
@@ -338,7 +338,9 @@ class GraphBuilder:
             ):
                 self.warn("no_endpoints", source)
                 self.record(
-                    observation(source, self.observed, "Service has no ready runtime endpoints")
+                    observation(
+                        source, self.observed, "Service has no ready runtime endpoints"
+                    ).model_copy(update={"metadata": {"signal": "no_ready_endpoints"}})
                 )
 
     def pod_references(self, source: Resource, spec: dict[str, Any]) -> None:
@@ -476,6 +478,19 @@ class GraphBuilder:
                                 self.environment, self.observed, source.id, evidence.observation
                             ),
                             "raw_reference": source.id,
+                            "metadata": {
+                                "evidence_kind": "event",
+                                "event_reason": reason,
+                                "timestamp_origin": "source"
+                                if timestamp(
+                                    raw.get("eventTime")
+                                    or raw.get("lastTimestamp")
+                                    or raw["metadata"].get("creationTimestamp"),
+                                    datetime.min.replace(tzinfo=UTC),
+                                )
+                                != datetime.min.replace(tzinfo=UTC)
+                                else "retrieval_fallback",
+                            },
                         }
                     )
                 )
