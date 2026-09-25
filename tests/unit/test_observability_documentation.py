@@ -34,5 +34,5 @@ def test_required_docs_and_current_checkpoint():
     ):
         assert (ROOT / path).is_file()
     state = (ROOT / "PROJECT_STATE.md").read_text(encoding="utf-8")
-    assert "Sprint: 10" in state and "Impact: HIGH" in state
-    assert "Base commit: c80518197268c3b99d49f8fc516a0af03f560f10" in state
+    assert "Sprint: 11" in state and "Impact: HIGH" in state
+    assert "Base commit: 0f7ad273ae95924b803e98090cdd05624931d0ca" in state

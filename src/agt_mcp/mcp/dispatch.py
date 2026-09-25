@@ -1,6 +1,7 @@
 """Single request boundary for safe structured responses and audit envelopes."""
 
 import asyncio
+import hashlib
 import json
 import logging
 from time import monotonic
@@ -126,6 +127,27 @@ class Dispatcher:
                     {
                         "event": "tool_finished",
                         "operation": tool.value,
+                        "principal_id": context.principal_id,
+                        "resource_ref_sha256": hashlib.sha256(
+                            json.dumps(
+                                [
+                                    resource_id,
+                                    *(
+                                        query.model_dump(mode="json") if query is not None else None
+                                        for query in (
+                                            runtime_query,
+                                            gateway_query,
+                                            knowledge_query,
+                                            correlation_operation,
+                                            troubleshooting_operation,
+                                            trace_operation,
+                                            observability_query,
+                                        )
+                                    ),
+                                ],
+                                sort_keys=True,
+                            ).encode("utf-8")
+                        ).hexdigest(),
                         "request_id": context.request_id,
                         "correlation_id": context.correlation_id,
                         "environment_id": context.environment_id

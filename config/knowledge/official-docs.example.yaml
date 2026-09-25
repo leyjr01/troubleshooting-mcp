@@ -1,12 +1,12 @@
-# URL is attribution only. No HTTP fetch is implemented.
+# Placeholder attribution only. Replace URL and allowlist with reviewed official provenance.
 knowledge_sources:
   - id: official-3scale
     type: official-local
     enabled: false
     local_path: C:/knowledge/curated-3scale
     source_type: OFFICIAL_DOCUMENTATION
-    source_url: https://docs.redhat.com/en/documentation/red_hat_3scale_api_management/2.16
-    allowed_domains: [docs.redhat.com, access.redhat.com]
+    source_url: https://docs.example.invalid/3scale/2.16
+    allowed_domains: [docs.example.invalid]
     metadata:
       environment: global
       product: 3scale

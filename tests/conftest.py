@@ -19,6 +19,34 @@ def pytest_ignore_collect(collection_path, config):
     return collection_path.name == "real_lab" and not config.getoption("--real-lab")
 
 
+def pytest_collection_modifyitems(items):
+    """Reuse the existing contract/security suites instead of cloning release tests."""
+    for item in items:
+        path = item.path.as_posix()
+        if "/real_lab/" in path:
+            continue
+        if (
+            "/integration/" in path
+            or "/scenarios/" in path
+            or any(
+                term in item.path.name
+                for term in (
+                    "security",
+                    "boundaries",
+                    "configuration",
+                    "deployment",
+                    "release",
+                    "hypothesis_engine",
+                    "correlation_engine",
+                    "observability_models",
+                    "observability_transport",
+                    "observability_prometheus",
+                )
+            )
+        ):
+            item.add_marker(pytest.mark.release)
+
+
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch, request):
     import socket

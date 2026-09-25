@@ -1,3 +1,5 @@
-"""Vendor-neutral troubleshooting foundations; no external integrations."""
+"""Vendor-neutral evidence-first troubleshooting; version from installed metadata."""
 
-__version__ = "0.1.0"
+from importlib.metadata import version
+
+__version__ = version("api-gateway-troubleshooting-mcp")

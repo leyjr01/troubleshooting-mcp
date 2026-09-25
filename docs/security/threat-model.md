@@ -1,4 +1,13 @@
-# Threat analysis inicial
+# Threat model
+
+## v1 release status
+
+Historical sections below describe earlier controls. Current mitigated/accepted/
+out-of-scope risks are recorded in the [final security review](../release/security-review.md).
+Authenticated HTTP, probes and observability now exist under the approved boundaries.
+Production SSO, HA, remediation and live qualification remain outside this release.
+
+## Historical foundation
 
 Sprint 3 adds an evidence-based 3scale classifier over the runtime port. Restricted
 APIManager booleans and recognized metadata are projected in the adapter;

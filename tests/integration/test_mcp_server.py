@@ -59,6 +59,8 @@ def test_mcp_seven_tools_and_safe_results(caplog):
         json.loads(record.message) for record in caplog.records if record.name == "agt_mcp.audit"
     ]
     assert len(events) == 7
+    assert all(event["principal_id"] == "local-client" for event in events)
+    assert all(len(event["resource_ref_sha256"]) == 64 for event in events)
     assert all(event["correlation_id"] == correlation for event in events)
     assert len({event["request_id"] for event in events}) == 7
 

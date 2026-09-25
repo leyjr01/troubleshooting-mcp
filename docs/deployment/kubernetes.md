@@ -9,7 +9,7 @@ image execution and live qualification remain operator validation steps.
 Build with an approved **Python 3.12 slim Linux image by digest**:
 
 ```sh
-docker build --build-arg PYTHON_IMAGE="$APPROVED_PYTHON_IMAGE" -t agt-mcp:sprint10 .
+docker build --build-arg PYTHON_IMAGE="$APPROVED_PYTHON_IMAGE" --build-arg RELEASE_VERSION=1.0.0 -t agt-mcp:1.0.0 .
 ```
 
 The build rejects an image without `@sha256:<64 hex characters>`. Publish an

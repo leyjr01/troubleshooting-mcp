@@ -1,0 +1,10 @@
+include README.md CHANGELOG.md SECURITY.md Dockerfile .dockerignore requirements.lock
+include AGENTS.md PROJECT_STATE.md
+recursive-include deploy *.yaml *.constraints
+recursive-include docs *.md *.json
+recursive-include config *.example.yaml
+recursive-include scripts *.py *.md
+recursive-include tests *.py *.json *.yaml *.md
+recursive-include knowledge *.md *.yaml
+recursive-include mappings *.yaml *.md
+global-exclude *.py[cod] *.tmp

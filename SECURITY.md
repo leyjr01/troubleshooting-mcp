@@ -1,37 +1,30 @@
-# Security policy
+﻿# Security policy — v1.0.0
 
-Read-only por padrão: READ, DIAGNOSE, RECOMMEND. Não executar apply/delete/patch,
-restart, update de banco, mudança de secret ou remediação automática.
-Gateway/resource de tipo Secret revela identidade autorizada, nunca valor.
+Supported security-contract line: 1.x with the qualification limits in
+[release notes](docs/release/v1.0.0.md). No production certification is claimed.
+READ, DIAGNOSE, RECOMMEND only: no apply/delete/patch/restart, database writes,
+Secret discovery or remediation. Derived caches/indexes may change. Opt-in probes
+are active network observations: read-only does not mean passive networking.
 
-Least privilege por ambiente: RBAC futuro de get/list/watch apenas em recursos
-necessários; logs requerem autorização própria. Banco com usuário SELECT e
-schema allowlist; não credenciais administrativas. Sem kubeconfig global herdado
-sem escolha explícita. Nenhum acesso externo produtivo existe. A Sprint 1 expõe
-STDIO e HTTP loopback com autorização local explícita, deny-all por padrão e
-validação Host/Origin. Esse modo confia no usuário local do sistema operacional;
-não é autenticação remota. Não expor por proxy/túnel.
-Veja [runtime MCP](docs/architecture/mcp-runtime.md).
+Authorization defaults deny access, with principal/environment/source permissions.
+STDIO/local HTTP trust the OS user. Remote HTTP requires a configured bearer and
+exact Hosts, operator-managed TLS termination and network restrictions. Shared
+reader credentials are not production SSO. Kubernetes grants only explicit get/list,
+never Secret access or wildcards. Recommendations cannot execute changes.
 
-No secrets in Git: referências em YAML; valores apenas pelo CredentialProvider,
-scoped e allowlisted. Não logar payload, Authorization headers, cookies, passwords,
-tokens, API keys, private keys, connection strings ou client secrets.
-Sanitizer/Redactor são contratos; implementação conservadora retém só status
-enum e contagem limitada, descartando campos desconhecidos e texto livre.
-Ela reduz utilidade propositalmente: sanitização produtiva contextual é sprint futura.
+No secrets in Git, examples, CLI arguments, responses or logs. Providers resolve
+scoped credentials; the server may read its explicitly configured mounted token
+without Secret API permission. External logs/docs are untrusted data, not executable
+instructions. SSRF protections enforce approved endpoints, DNS/CIDRs and verified
+TLS. Errors expose categories, not traceback, paths or raw messages.
 
-Timeout obrigatório, cancelamento cooperativo, limite de logs/itens/bytes.
-Proteções de shell/query injection por ausência de execução arbitrária e schemas
-restritos; SSRF precisará controles do adapter futuro. Separar dados/instruções:
-logs/docs maliciosos nunca escolhem operações, credenciais ou comandos.
-Allowlist de leitura e isolamento multi-environment na fronteira de aplicação.
+Limits/redaction do not guarantee production DDoS resistance or perfect secret
+recognition. Operator configuration is privileged. SSO/OIDC, HA, public multi-tenant
+access, automatic remediation and live OpenShift/3scale certification are excluded.
+Current CVE status is not certified. See [review](docs/release/security-review.md)
+and [threat model](docs/security/threat-model.md).
 
-Auditabilidade: request/correlation ID, escopo, adapter, duração, resultado e
-categoria segura de erro; IDs não podem ser preenchidos com secrets.
-Eventos não incluem mensagens externas, dados pessoais ou stacktrace bruto.
-Referências/provenance brutas são internas e devem passar sanitização antes de saída.
-
-Validação local: pytest, Bandit em src, revisão de diff e arquivos staged.
-[Threat model](docs/security/threat-model.md) define cobertura e limites.
-Para reportar vulnerabilidade, contate o mantenedor por canal privado acordado;
-não publique credenciais, dumps ou dados de cliente em issue.
+Report vulnerabilities privately through a channel agreed with the maintainer.
+Include affected version, sanitized reproduction, impact and safe IDs. Never post
+credentials, kubeconfig or customer dumps. No public contact address or response
+SLA has been established.

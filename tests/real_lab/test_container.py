@@ -45,7 +45,19 @@ def test_container_http_and_sigterm(tmp_path):
     path = tmp_path / "config.yaml"
     path.write_text(yaml.safe_dump(configuration), encoding="utf-8")
     path.chmod(0o644)
-    run("build", "--build-arg", f"PYTHON_IMAGE={image}", "-t", name, ".", cwd=ROOT)
+    from agt_mcp import __version__
+
+    run(
+        "build",
+        "--build-arg",
+        f"PYTHON_IMAGE={image}",
+        "--build-arg",
+        f"RELEASE_VERSION={__version__}",
+        "-t",
+        name,
+        ".",
+        cwd=ROOT,
+    )
     try:
         run(
             "run",

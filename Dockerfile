@@ -13,10 +13,18 @@ RUN python -m pip install --no-cache-dir setuptools==75.8.0 wheel==0.45.1 \
        --wheel-dir /wheels --constraint requirements.lock --constraint runtime-linux.constraints .
 
 FROM ${PYTHON_IMAGE}
+ARG RELEASE_VERSION
+ARG VCS_REF=unknown
+ARG SOURCE_URL=unknown
+LABEL org.opencontainers.image.title="API Gateway Troubleshooting MCP" \
+      org.opencontainers.image.version="${RELEASE_VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.source="${SOURCE_URL}"
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 HOME=/tmp TMPDIR=/tmp
 WORKDIR /app
 COPY --from=build /wheels /wheels
 RUN python -m pip install --no-cache-dir --no-index --find-links=/wheels api-gateway-troubleshooting-mcp \
+    && python -c "import os; from importlib.metadata import version; assert version('api-gateway-troubleshooting-mcp') == os.environ['RELEASE_VERSION']" \
     && rm -rf /wheels
 USER 10001:0
 EXPOSE 8000

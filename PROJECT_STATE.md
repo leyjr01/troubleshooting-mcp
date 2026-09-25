@@ -1,10 +1,10 @@
-﻿# PROJECT_STATE
+# PROJECT_STATE
 
 ## Current baseline
-Current Sprint: 10 — Real Environment Integration & Deployment Readiness.
-Status: PASS for deployment readiness; live qualification NOT EXECUTED.
-Commit: HEAD — feat: add Kubernetes OpenShift deployment readiness (Sprint 10).
-Base commit: c80518197268c3b99d49f8fc516a0af03f560f10 (Sprint 9.1 PASS).
+Current Sprint: 11 — Final Hardening, Release Readiness & v1.0.0 Preparation.
+Status: PASS. v1.0.0: READY WITH LIMITATIONS; all critical technical gates passed.
+Commit: HEAD — chore: prepare v1.0.0 release readiness (Sprint 11).
+Base commit: 0f7ad273ae95924b803e98090cdd05624931d0ca (Sprint 10 PASS).
 Exactly one sprint commit follows this base.
 Resolve with git log -1 --format="%H %s" -- PROJECT_STATE.md.
 Containing commit reference avoids a self-referential hash.
@@ -90,22 +90,23 @@ Defaults: 16 hypotheses, 8 candidates, 12 steps, 10 evidence/hypothesis, 12 comp
 Cache: 16 results, 300-second TTL; correlation bounds and response-byte bounds also apply.
 
 ## Current test status
-Approved baseline: 1092 PASS, 97.38% coverage; 35/35 scenarios, 6/6 golden.
-Small initial baseline: 62 PASS (configuration/runtime).
-L1 deployment: 27 unit cases and authenticated HTTP case passed across focused runs.
-L2 checkpoint: 117 PASS, zero failures/errors/skips, including all 6 golden cases.
-L2 covers HTTP authentication/ACLs/health/shutdown, unavailable Kubernetes, runner,
-transport compatibility, SSRF/probe security, architecture, SDK auth and documentation.
-Opt-in real_lab: 2 SKIPPED (no Docker or configured cluster); no real execution claimed.
-Single final full regression: 1124 PASS, 0 failures/errors/skips, 115.93 seconds.
-All 1092 baseline tests retained; 32 added. Strict scenarios: 35/35 PASS, golden 6/6 PASS.
-Coverage: 97.76%, branch-inclusive; >=97% gate PASS.
-Lint/format PASS (301 files), strict mypy PASS (134 source files), Bandit/pip check PASS.
-Bandit B104 exceptions only for explicit authenticated bind and its comparison, per ADR-0020.
-Post-regression edits: documentation and those comments/formatting only; behavior unchanged.
-Coverage gate >=97%, branch-inclusive; project minimum >=96% unchanged, no exclusions added.
-AGENTS.md unchanged; existing runtime dependencies unchanged; Linux build constraints added.
-
+Approved Sprint 10 baseline: 1124 PASS, 97.76%, 35/35 scenarios and 6/6 golden.
+Sprint 11 minimal baseline: 67 PASS; focused release/HTTP/deployment/docs: 43 PASS.
+Focused collection emitted Windows WMI diagnostic but completed with exit zero.
+Wheel/sdist build and isolated install/system_health 1.0.0 PASS.
+L2 release checkpoint: 590 PASS, 543 deselected, 132.21s; 35 scenarios and 6 golden PASS.
+Lint/format PASS (314 files), mypy PASS (134 source files), Bandit/pip check PASS.
+Single final full regression: 1133 PASS, 0 failures/errors/skips, 267.47s.
+All 1124 baseline tests retained; 9 added. Branch-inclusive coverage 97.81%, >=97% PASS.
+No runtime source changes after the full regression; final packaging refresh is documentation-only.
+Runtime version uses installed package metadata; pyproject is the single version authority.
+OCI version supplied at build is verified against installed metadata; no runtime Git.
+Audit includes configured principal and hashed resource/query reference, never raw input.
+Release marker reuses configuration/security/architecture/MCP/deployment/scenario suites.
+Global 38-tool read-only and all-role get/list/no-Secret/no-wildcard gates implemented.
+No new diagnostic algorithm, adapter, probe, RAG capability or remediation.
+AGENTS.md and approved ADRs unchanged; no new ADR. Runtime dependency versions unchanged.
+Only existing pinned setuptools/wheel build tools installed for artifact generation.
 ## Known limitations and next scope
 Offline validation; no live cluster qualification. Metadata-based version detection.
 Bounded non-atomic snapshots; no Admin API mapping; unmapped APIs explicitly LIMITED.
@@ -136,7 +137,10 @@ Container build/smoke, Linux dependency resolution, SCC admission, Route TLS and
 SIGTERM shutdown NOT EXECUTED; static contracts and local HTTP lifecycle are validated.
 Operator must supply approved Python 3.12 Linux image digest, token and cluster-specific
 hosts/namespaces/network policy; examples are not production identity/HA/SSO support.
-Sprint 11 baseline: containing Sprint 10 PASS commit; resolve using command above.
+Post-1.0: live OpenShift/3scale qualification, SSO/OIDC, HA, additional gateways/providers,
+incident DB, production RAG hardening and separately authorized controlled remediation.
+Current dependency CVEs not assessed by Bandit/pip check; license metadata inventory supplied.
+Public redistribution license is unspecified; no publication or tag performed.
 
 ## Relevant ADRs and documents
 0003 models; 0004 config/secrets; 0007 datasource; 0009 RAG; 0010 security;
@@ -151,23 +155,27 @@ Validation: docs/development/sprint-9-validation.md; earlier sprint reports reta
 Sprint 10: docs/development/sprint-10-validation.md; docs/development/real-lab.md.
 Deployment: docs/deployment/kubernetes.md, openshift.md and operations.md.
 Harness: docs/development/diagnostic-scenario-harness.md.
+Release: docs/release/v1.0.0.md, compatibility.md, tool-catalog.md, contracts.md,
+security-review.md, commands.md and sprint-11-validation.md; CHANGELOG.md.
+Operations: docs/operations/runbook.md; installation: docs/installation/README.md.
 
 ## SPRINT CHECKPOINT
-Sprint: 10
+Sprint: 11
 Commit: HEAD (single containing commit; resolve using command above).
-Base commit: c80518197268c3b99d49f8fc516a0af03f560f10
-Expected commit subject: feat: add Kubernetes OpenShift deployment readiness (Sprint 10)
-Status: PASS for deployment readiness; real infrastructure NOT EXECUTED.
+Base commit: 0f7ad273ae95924b803e98090cdd05624931d0ca
+Expected commit subject: chore: prepare v1.0.0 release readiness (Sprint 11)
+Status: PASS. v1.0.0: READY WITH LIMITATIONS.
+Release: 1.0.0 technical preparation complete; no publication or tag.
 Impact: HIGH
-Delivered: authenticated HTTP, container definition, Kubernetes/OpenShift manifests/runbooks,
-health/lifecycle endpoints, credential mount support and opt-in real-lab smoke profiles.
-Architecture: existing SDK/runtime/services/evaluator reused; 38 tools unchanged.
-New ADR: 0020 authenticated container deployment; previous approved decisions preserved.
-Security: get/list RBAC, no Secret API access, scoped ACLs, safe logs, SSRF boundaries.
-Probes: disabled by default; explicit configuration and authorization still required.
-Tests: L1 deployment PASS; L2 117 PASS; single full regression 1124 PASS, zero failures/skips.
-Scenarios: 35/35 PASS; golden 6/6 PASS; no false positives/negatives or recommendation failures.
-Quality: lint/format/mypy/Bandit/pip check PASS; coverage 97.76%, required >=97%.
-Real Lab: Kubernetes/OpenShift/3scale/container NOT EXECUTED; opt-in 2 SKIPPED.
-Limits: live image/SCC/TLS/SIGTERM not qualified; no production SSO, HA or remediation.
-Next: Sprint 11 baseline is this single containing commit; no mandatory Sprint 10 item pending.
+Delivered: metadata version authority, OCI labels, audit attribution/reference hashes,
+release catalog, compatibility/security/operations docs, packaging and clean-install scripts.
+Architecture: existing 38 tools and diagnostic pipeline preserved; no new feature.
+Security: read-only tools/RBAC; no Secret API grants, wildcard or source-write operations.
+New ADR: NONE. AGENTS.md and prior approved decisions unchanged.
+Tests: baseline 67 PASS; focused 43 PASS; L2 590 PASS; single full regression 1133 PASS.
+Scenarios: 35/35 PASS, golden 6/6 PASS, six expected inconclusive; no false positives/negatives.
+Packaging: wheel/sdist and isolated installation/system_health PASS.
+Quality: lint/format/mypy/Bandit/pip PASS; coverage 97.81%, >=97% required.
+Real Lab: Kubernetes/OpenShift/3scale/container NOT EXECUTED; no infrastructure available.
+Limits: no live qualification, production SSO/HA/remediation or current CVE certification.
+Next: no mandatory Sprint 11 item pending; follow documented post-1.0 qualification backlog.

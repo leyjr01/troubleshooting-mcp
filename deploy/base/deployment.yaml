@@ -19,7 +19,7 @@ spec:
       containers:
         - name: mcp
           # Replace with the immutable tag/digest produced by your trusted build.
-          image: agt-mcp:sprint10
+          image: agt-mcp:1.0.0
           imagePullPolicy: IfNotPresent
           args: [--file, /etc/agt/config.yaml, --transport, http]
           ports:
