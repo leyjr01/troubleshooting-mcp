@@ -1,0 +1,4 @@
+# Linux-only transitive dependencies of the existing keyring dependency.
+# Remaining runtime versions are constrained by the unchanged requirements.lock.
+SecretStorage==3.3.3
+jeepney==0.8.0

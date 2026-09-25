@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: agt-mcp
+  namespace: agt-mcp
+spec:
+  type: ClusterIP
+  selector: {app: agt-mcp}
+  ports:
+    - {name: http, port: 8000, targetPort: http}

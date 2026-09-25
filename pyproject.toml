@@ -22,7 +22,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
-markers = ["unit: isolated local tests", "contract: adapter contract tests", "integration: local composition only", "scenario: future diagnostic scenarios", "local_transport: numeric loopback MCP transport tests", "diagnostic_scenarios: deterministic application diagnostic contracts", "golden: critical diagnostic acceptance cases"]
+markers = ["unit: isolated local tests", "contract: adapter contract tests", "integration: local composition only", "scenario: future diagnostic scenarios", "local_transport: numeric loopback MCP transport tests", "diagnostic_scenarios: deterministic application diagnostic contracts", "golden: critical diagnostic acceptance cases", "real_lab: opt-in Docker or explicitly configured cluster"]
 
 [tool.coverage.run]
 source = ["agt_mcp"]

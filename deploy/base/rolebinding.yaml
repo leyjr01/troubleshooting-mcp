@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: agt-mcp-reader
+  namespace: agt-mcp
+subjects:
+  - kind: ServiceAccount
+    name: agt-mcp
+    namespace: agt-mcp
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: agt-mcp-reader

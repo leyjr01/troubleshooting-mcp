@@ -1,0 +1,48 @@
+# Optional fixture preparation by an operator, never applied by the MCP or tests.
+apiVersion: v1
+kind: Namespace
+metadata: {name: agt-lab}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: lab-config, namespace: agt-lab}
+data: {mode: read-only-fixture}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: lab-backend, namespace: agt-lab}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: lab-backend}}
+  template:
+    metadata: {labels: {app: lab-backend}}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: backend
+          image: busybox:1.36.1
+          command: [sleep, "86400"]
+          ports: [{containerPort: 8080}]
+          envFrom:
+            - configMapRef: {name: lab-config}
+            - secretRef: {name: intentionally-unresolved, optional: true}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: lab-backend, namespace: agt-lab}
+spec:
+  selector: {app: lab-backend}
+  ports: [{port: 8080, targetPort: 8080}]
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata: {name: lab-backend, namespace: agt-lab}
+spec:
+  rules:
+    - host: lab.example.invalid
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: lab-backend, port: {number: 8080}}}

@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def pytest_addoption(parser):
+    parser.addoption("--real-lab", action="store_true", help="Enable explicit real-lab tests")
     parser.addoption(
         "--scenario-acceptance",
         action="store_true",
@@ -14,9 +15,16 @@ def pytest_addoption(parser):
     )
 
 
+def pytest_ignore_collect(collection_path, config):
+    return collection_path.name == "real_lab" and not config.getoption("--real-lab")
+
+
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch, request):
     import socket
+
+    if request.node.get_closest_marker("real_lab") and request.config.getoption("--real-lab"):
+        return
 
     original = socket.getaddrinfo
 

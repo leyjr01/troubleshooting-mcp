@@ -1,0 +1,11 @@
+# Optional TLS-terminated exposure. Add this exact host to server.allowed_hosts.
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: agt-mcp
+  namespace: agt-mcp
+spec:
+  host: agt-mcp.apps.example.invalid
+  to: {kind: Service, name: agt-mcp}
+  port: {targetPort: http}
+  tls: {termination: edge, insecureEdgeTerminationPolicy: Redirect}

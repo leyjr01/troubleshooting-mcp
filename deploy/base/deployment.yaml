@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agt-mcp
+  namespace: agt-mcp
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: agt-mcp}
+  template:
+    metadata:
+      labels: {app: agt-mcp}
+    spec:
+      serviceAccountName: agt-mcp
+      terminationGracePeriodSeconds: 45
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: mcp
+          # Replace with the immutable tag/digest produced by your trusted build.
+          image: agt-mcp:sprint10
+          imagePullPolicy: IfNotPresent
+          args: [--file, /etc/agt/config.yaml, --transport, http]
+          ports:
+            - {name: http, containerPort: 8000}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: "1", memory: 512Mi}
+          startupProbe:
+            httpGet: {path: /readyz, port: http, httpHeaders: [{name: Host, value: 127.0.0.1}]}
+            periodSeconds: 2
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: {path: /readyz, port: http, httpHeaders: [{name: Host, value: 127.0.0.1}]}
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /livez, port: http, httpHeaders: [{name: Host, value: 127.0.0.1}]}
+            periodSeconds: 10
+          volumeMounts:
+            - {name: config, mountPath: /etc/agt, readOnly: true}
+            - {name: auth, mountPath: /var/run/agt-auth, readOnly: true}
+            - {name: temporary, mountPath: /tmp}
+      volumes:
+        - name: config
+          configMap: {name: agt-mcp-config}
+        - name: auth
+          secret:
+            secretName: agt-mcp-auth
+            defaultMode: 0444
+            items: [{key: token, path: token}]
+        - name: temporary
+          emptyDir: {sizeLimit: 128Mi}

@@ -41,7 +41,12 @@ def serve(configuration: Configuration) -> None:
             show_banner=False,
             log_level=settings.log_level,
             host_origin_protection=True,
-            allowed_hosts=["127.0.0.1"],
+            allowed_hosts=list(settings.allowed_hosts),
             allowed_origins=[],
-            uvicorn_config={"log_config": None, "access_log": False},
+            uvicorn_config={
+                "log_config": None,
+                "access_log": False,
+                "timeout_graceful_shutdown": settings.shutdown_timeout_seconds,
+                "proxy_headers": False,
+            },
         )

@@ -1,0 +1,11 @@
+*
+!Dockerfile
+!pyproject.toml
+!requirements.lock
+!README.md
+!src/
+!src/**
+!deploy/
+!deploy/runtime-linux.constraints
+**/__pycache__
+**/*.pyc

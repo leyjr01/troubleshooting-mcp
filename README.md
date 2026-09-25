@@ -109,11 +109,14 @@ python -m agt_mcp serve --file config/server/local.example.yaml --transport http
 STDIO é o padrão; HTTP atende em `http://127.0.0.1:8000/mcp`. Os comandos de
 validação continuam offline. Somente o exemplo local ativa adapters em memória.
 Autorização padrão deny-all; o exemplo concede leitura ao cliente do sistema
-operacional local. Nenhum modo de acesso remoto está disponível nesta sprint.
+operacional local. A Sprint 10 permite HTTP externo explicitamente configurado,
+com bearer token obrigatório, hosts permitidos e as mesmas ACLs de leitura.
+Veja [deployment Kubernetes](docs/deployment/kubernetes.md),
+[OpenShift](docs/deployment/openshift.md) e [operação](docs/deployment/operations.md).
 
 ## Testing e current status
 
-Fixtures são sintéticas, nenhum teste exige rede. Coverage mínimo configurado
+Os testes padrão usam fixtures sintéticas e não exigem rede externa. Coverage mínimo configurado
 em 96%, com branches e relatório de linhas; cobertura não prova segurança produtiva.
 Testes de integração incluem cliente MCP em memória, subprocesso STDIO e HTTP
 em loopback. O SDK Kubernetes real usa respostas simuladas nos testes; nenhum
@@ -124,11 +127,16 @@ simulado apresentado como funcionalidade pronta.
 [Validação da Sprint 0](docs/development/sprint-0-validation.md) registra os resultados.
 [Validação da Sprint 1](docs/development/sprint-1-validation.md) registra os checks do servidor.
 [Validação da Sprint 2](docs/development/sprint-2-validation.md) registra os checks de runtime.
+[Validação da Sprint 10](docs/development/sprint-10-validation.md) registra deployment
+e segurança. O [perfil real-lab](docs/development/real-lab.md) é opt-in e separado
+da suíte padrão; execução real de container/cluster não foi realizada neste ambiente.
 
 ## Kubernetes e OpenShift
 
 Cliente oficial `kubernetes==36.0.3`, com API assíncrona e autenticação kubeconfig
-ou in-cluster. Nenhum Secret é lido; somente referências são representadas.
+ou in-cluster. Nenhum Secret é consultado na API; somente referências são representadas.
+O token do próprio servidor pode vir de variável de ambiente ou arquivo montado
+explicitamente configurado, sem exposição nas respostas ou logs.
 Discovery cluster-scoped é opcional e desabilitado por padrão. A integração
 OpenShift acrescenta Routes quando a API está disponível.
 

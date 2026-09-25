@@ -26,8 +26,13 @@ def test_required_docs_and_current_checkpoint():
         "docs/development/sprint-8-validation.md",
         "docs/development/diagnostic-scenario-harness.md",
         "docs/development/sprint-9-validation.md",
+        "docs/development/sprint-10-validation.md",
+        "docs/development/real-lab.md",
+        "docs/deployment/kubernetes.md",
+        "docs/deployment/openshift.md",
+        "docs/deployment/operations.md",
     ):
         assert (ROOT / path).is_file()
     state = (ROOT / "PROJECT_STATE.md").read_text(encoding="utf-8")
-    assert "Sprint: 9.1" in state and "Impact: MEDIUM" in state
-    assert "Base commit: 24a6a931bed6898931fc2d64de329213aeefdf87" in state
+    assert "Sprint: 10" in state and "Impact: HIGH" in state
+    assert "Base commit: c80518197268c3b99d49f8fc516a0af03f560f10" in state

@@ -1,0 +1,17 @@
+# Optional API permissions in each explicitly authorized 3scale namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata: {name: agt-mcp-openshift-reader, namespace: agt-mcp}
+rules:
+  - apiGroups: [route.openshift.io]
+    resources: [routes]
+    verbs: [get, list]
+  - apiGroups: [apps.3scale.net]
+    resources: [apimanagers]
+    verbs: [get, list]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata: {name: agt-mcp-openshift-reader, namespace: agt-mcp}
+subjects: [{kind: ServiceAccount, name: agt-mcp, namespace: agt-mcp}]
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: agt-mcp-openshift-reader}

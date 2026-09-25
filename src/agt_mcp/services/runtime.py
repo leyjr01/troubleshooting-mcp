@@ -349,6 +349,9 @@ class Runtime:
         except builtins.TimeoutError:
             raise TimeoutError() from None
 
+    def health_status(self) -> str:
+        return "healthy" if self.ready else "not_ready"
+
     async def _dispatch(
         self, context: ExecutionContext, resource_id: str | None
     ) -> dict[str, JsonValue]:
@@ -358,7 +361,7 @@ class Runtime:
             return {
                 "server": self.configuration.mcp.server.name,
                 "version": __version__,
-                "status": "healthy",
+                "status": self.health_status(),
                 "uptime_seconds": monotonic() - (self.started_at or monotonic()),
                 "configured_environment": environment,
                 "registered_gateways": len(self.gateways.entries(environment)),

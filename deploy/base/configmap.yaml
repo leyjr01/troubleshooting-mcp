@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agt-mcp-config
+  namespace: agt-mcp
+data:
+  config.yaml: |
+    application:
+      environment: cluster
+      max_payload_bytes: 1048576
+    environments:
+      - id: cluster
+        name: Explicit namespace reader
+        type: development
+        cluster: configured-cluster
+        namespace: agt-mcp
+        runtime:
+          provider: kubernetes
+          authentication: {mode: in-cluster}
+          discovery:
+            namespaces: {include: [agt-mcp]}
+            cluster_scoped: false
+    mcp:
+      server:
+        transport: http
+        host: 0.0.0.0
+        port: 8000
+        allowed_hosts: [127.0.0.1, agt-mcp, agt-mcp.agt-mcp.svc, agt-mcp.agt-mcp.svc.cluster.local]
+        http_token:
+          provider: mounted-file
+          reference: file:/var/run/agt-auth/token
+          environment_id: cluster
+        shutdown_timeout_seconds: 30
+        enabled_tools: [system_health, list_capabilities, list_environments, discover_environment, inspect_resource, inspect_events, find_related_resources, get_resource_topology, correlate_evidence, diagnose_api, explain_hypothesis, get_troubleshooting_plan, trace_resource, explain_trace, plan_probes]
+        authorization:
+          mode: local-read-only
+          environment_ids: [cluster]
+          permissions: [system.read, capability.read, environment.read, runtime.discover, resource.read, event.read, topology.read, correlation.read, troubleshooting.read, trace.read, probe.plan]
+    probes: {enabled: false, execution_mode: plan_only}
+    observability: {sources: []}
