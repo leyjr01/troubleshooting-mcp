@@ -6,6 +6,14 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def pytest_addoption(parser):
+    parser.addoption(
+        "--scenario-acceptance",
+        action="store_true",
+        help="Require diagnostic PASS, including known capability gaps",
+    )
+
+
 @pytest.fixture(autouse=True)
 def no_network(monkeypatch, request):
     import socket

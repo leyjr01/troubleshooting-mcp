@@ -1,9 +1,9 @@
 ﻿# PROJECT_STATE
 
 ## Current baseline
-Current Sprint: 8 — Observability Correlation & Evidence Enrichment, completed (PASS).
-Commit: HEAD — feat: add observability evidence correlation (Sprint 8).
-Base commit: 14cbc5f14c5072300180cfe6a31e6aab737bcd2f (Sprint 7).
+Current Sprint: 9 — Failure Scenario Harness & Diagnostic Validation (PARTIAL).
+Commit: HEAD — feat: add diagnostic scenario validation harness (Sprint 9).
+Base commit: 789dd79c95c374b3ab87f6a4e7b2320abb15dac5 (Sprint 8).
 Exactly one sprint commit follows this base.
 Resolve with git log -1 --format="%H %s" -- PROJECT_STATE.md.
 Containing commit reference avoids a self-referential hash.
@@ -27,7 +27,10 @@ DNS/TCP/TLS/HTTP(S) implementation is outside the trace/probe/troubleshooting co
 ObservabilityAdapter: InMemory logs/metrics/traces and Prometheus-compatible HTTP metrics.
 Scoped UTC queries → redacted Evidence → existing correlation refresh and evaluator.
 Events/ProbeEvidence reuse; descriptive timeline, cached VirtualTrace enrichment, partial sources.
-Impact: HIGH; external integrations, secret handling, volume and diagnostic evidence.
+FailureScenario/ExpectedDiagnosis → ScenarioRunner → semantic assertions and structured report.
+Runner reuses Runtime.execute and existing diagnosis/trace/probe/observability services.
+Fixed fixtures, controlled clocks, fake sources/executor; five real in-process MCP cases.
+Impact: MEDIUM; validation-only changes, no engine expansion or production integration.
 
 ## Current MCP tools
 System/inventory: system_health, list_capabilities, list_environments, list_gateways,
@@ -74,14 +77,22 @@ Defaults: 16 hypotheses, 8 candidates, 12 steps, 10 evidence/hypothesis, 12 comp
 Cache: 16 results, 300-second TTL; correlation bounds and response-byte bounds also apply.
 
 ## Current test status
-Sprint 7 baseline: 823 validated; coverage 97.05%, unchanged branch-inclusive gate >=96%.
-Sprint 8 baseline: 29 passed. L1: models 39, service 38, protocol 47, transport 31, MCP 8.
-L2: 108 passed; prior valid integration/security results reused.
-Final single full run: 995 passed, 0 failed/errors/skipped; all 823 prior tests retained, 172 new.
-Coverage 97.30%, branch-inclusive; unchanged >=96% gate. No Python changes after collection.
-Ruff lint/format PASS (276 files); strict mypy PASS (129 source files); Bandit/pip check PASS.
-Only the Bandit empty-credential initialization warning needed a local pre-regression correction.
-Documentation/checkpoint PASS; current-sprint assertion advanced to Sprint 8.
+Sprint 8 baseline: 995 tests, 97.30% branch-inclusive coverage; gate remains >=96%.
+Sprint 9 minimal baseline: 40 hypothesis tests PASS, reused without rerun.
+L1/L2: 35 scenario contracts + report, 22 harness tests and 5 MCP cases PASS.
+Only the four failed MCP driver cases were rerun after their invocation correction.
+Diagnostic acceptance: 35 total, 28 PASS, 7 FAIL; golden 6 total, 2 PASS, 4 FAIL.
+Expected inconclusive: 6; false positives: 0; false negatives: 6; recommendation failures: 1.
+Known gaps remain FAIL in reports; passing regression contracts do not imply acceptance.
+Strict gate: pytest -m golden --scenario-acceptance; currently fails diagnostic acceptance.
+Single full run: 1023 PASS, 35 option-registration failures; coverage 97.36% (gate PASS).
+Moved pytest option registration to tests/conftest.py; only affected marker rerun: 36 PASS.
+Consolidated regression: 1058 unique tests PASS, 0 remaining failures/errors/skips; 63 new.
+All 995 existing tests retained. Source unchanged after coverage; only test hook/docs changed.
+Strict golden acceptance executed: 2 PASS, 4 FAIL, matching the diagnostic report.
+Architecture/security checks reused from full run; no second complete regression.
+Ruff lint/format PASS (288 files); strict mypy PASS (133 source files); Bandit/pip check PASS.
+Documentation/checkpoint checks PASS; affected documentation rechecked after final updates.
 AGENTS.md unchanged; no dependencies, coverage exclusions or new ADR.
 
 ## Known limitations and next scope
@@ -98,8 +109,13 @@ Existing total Evidence/depth/request-byte limits still apply; no metric-only ro
 OS DNS worker may finish after cancellation; late results never create connections.
 Local Git only; no remote fetch. Explicit programmatic refresh; CLI index starts empty.
 Lexical embeddings, ephemeral indexes/caches, pattern-based redaction.
-No mandatory Sprint 8 item pending.
-Next recommended scope: qualify operator mappings and one real log/trace adapter when authorized.
+Sprint 9 blind spots: no DNS/HTTP-error/timeout candidate; unresolved configuration
+requirements prevent ConfigMap/Secret candidate promotion; target TLS validation step absent.
+Contradiction case preserves evidence and rejects TLS but lacks backend HTTP-error candidate.
+TLS expiry and chain retain distinct facts but share the generic TLS candidate.
+Redis/DB target-specific TCP candidates do not establish protocol failure (approved rule).
+Only fixture mode implemented; real-lab is a documented future extension.
+Next: authorize focused engine catalog/requirements/plan work, then pass strict golden gate.
 
 ## Relevant ADRs and documents
 0003 models; 0004 config/secrets; 0007 datasource; 0009 RAG; 0010 security;
@@ -109,23 +125,27 @@ Contracts: docs/architecture/troubleshooting-engine.md and hypothesis-model.md.
 Safety/plans: docs/security/troubleshooting-safety.md and docs/architecture/troubleshooting-plan.md.
 Trace/probes: docs/architecture/virtual-trace-probes.md; docs/security/probe-safety.md.
 Observability: docs/architecture/observability-correlation.md; docs/security/observability-data-access.md.
-Validation: docs/development/sprint-8-validation.md (Sprint 7 report retained).
+Validation: docs/development/sprint-9-validation.md; earlier sprint reports retained.
+Harness: docs/development/diagnostic-scenario-harness.md.
 
 ## SPRINT CHECKPOINT
-Sprint: 8
+Sprint: 9
 Commit: HEAD (single containing commit; resolve using command above).
-Base commit: 14cbc5f14c5072300180cfe6a31e6aab737bcd2f
-Expected commit subject: feat: add observability evidence correlation (Sprint 8)
-Status: PASS
-Impact: HIGH
-Capabilities: logs, metrics, traces, Events, timeline, VirtualTrace and ProbeEvidence enrichment.
-Adapters: InMemory and Prometheus-compatible read-only HTTP; five opt-in MCP tools.
-Architecture: existing correlation engine and evaluator reused; no duplicate engine or collector.
+Base commit: 789dd79c95c374b3ab87f6a4e7b2320abb15dac5
+Expected commit subject: feat: add diagnostic scenario validation harness (Sprint 9)
+Status: PARTIAL (diagnostic acceptance has seven failures; four golden).
+Impact: MEDIUM
+Capabilities: typed fixtures, ScenarioRunner, semantic expectations and structured reports.
+Scenarios: 35 total, 28 PASS, 7 FAIL; golden 6 total, 2 PASS, 4 FAIL.
+Inconclusive expected: 6; false positives: 0; false negatives: 6; recommendation failures: 1.
+Architecture: existing application and evaluator reused; no duplicate engine or new adapter.
 New ADR: NONE; existing approved decisions preserved.
-Security: scoped configuration/permissions, redaction, SSRF/TLS boundary, no raw queries/writes.
-Tests: 995 passed, 0 failed/errors/skipped; 172 new, all 823 previous retained.
-Validation: L2 108 PASS; single full regression PASS; lint/format/mypy/security/dependencies PASS.
-Coverage: 97.30%, branch-inclusive; no Python changes after collection.
+Security: fake sources, no real network, redaction, provenance, SSRF and authorization checks.
+Tests: 1058 unique regression tests PASS after focused repair; 63 new, all 995 prior retained.
+Validation: one full run (1023 PASS, 35 test-hook failures), focused marker repair 36 PASS.
+Quality: lint/format/mypy/Bandit/dependencies PASS; architecture/security results reused.
+Golden strict acceptance: 2 PASS, 4 FAIL; remains a failed critical diagnostic gate.
+Coverage: 97.36%, branch-inclusive; source unchanged after measurement.
 Coverage gate: >=96%, branch-inclusive; no new exclusions or dependencies.
-Limits: offline qualification, fixture logs/traces, operator metric mappings, existing engine bounds.
-Next: qualify one real log/trace adapter and environment mappings when authorized.
+Limits: missing DNS/HTTP/timeout diagnosis, configuration promotion and TLS recommendation.
+Next: explicitly scoped engine work for seven failures; require strict golden acceptance.

@@ -17,8 +17,8 @@ def test_probe_example_is_disabled_and_valid():
 def test_sprint_checkpoint_and_architecture_docs():
     state = (ROOT / "PROJECT_STATE.md").read_text(encoding="utf-8-sig")
     checkpoint = state.split("## SPRINT CHECKPOINT")[1]
-    assert "Sprint: 8" in checkpoint
-    assert "14cbc5f14c5072300180cfe6a31e6aab737bcd2f" in checkpoint
+    assert "Sprint: 9" in checkpoint
+    assert "789dd79c95c374b3ab87f6a4e7b2320abb15dac5" in checkpoint
     assert len(checkpoint.splitlines()) < 60
     for file in (
         "docs/architecture/virtual-trace-probes.md",

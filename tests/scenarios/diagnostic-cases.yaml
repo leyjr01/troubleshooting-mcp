@@ -1,0 +1,221 @@
+- id: backend-down
+  profile: backend_down
+  golden: true
+  expected:
+    must_support: [BACKEND_COMPONENT_UNAVAILABLE, SERVICE_NO_READY_ENDPOINT, DEPENDENCY_TCP_UNAVAILABLE]
+    must_not_include: [TLS_VERIFICATION_UNAVAILABLE, DNS_RESOLUTION_FAILURE]
+    expected_confidence: {SERVICE_NO_READY_ENDPOINT: high, DEPENDENCY_TCP_UNAVAILABLE: medium}
+    probe_statuses: {DNS: PASS, TCP: FAILED, TLS: NOT_EXECUTED}
+- id: dns-failure
+  profile: dns
+  golden: true
+  known_gaps: ["support:DNS_RESOLUTION_FAILURE"]
+  expected:
+    must_support: [DNS_RESOLUTION_FAILURE]
+    must_not_include: [TLS_VERIFICATION_UNAVAILABLE, DEPENDENCY_TCP_UNAVAILABLE]
+    probe_statuses: {DNS: FAILED, TCP: NOT_EXECUTED, TLS: NOT_EXECUTED}
+- id: tcp-failure
+  profile: tcp
+  expected:
+    must_support: [DEPENDENCY_TCP_UNAVAILABLE]
+    must_not_include: [TLS_VERIFICATION_UNAVAILABLE]
+    expected_confidence: {DEPENDENCY_TCP_UNAVAILABLE: medium}
+    probe_statuses: {DNS: PASS, TCP: FAILED, TLS: NOT_EXECUTED}
+- id: tls-expired
+  profile: tls_expired
+  golden: true
+  known_gaps: ["recommend:tls_verification"]
+  expected:
+    must_support: [TLS_VERIFICATION_UNAVAILABLE]
+    must_reject: [DEPENDENCY_TCP_UNAVAILABLE]
+    expected_confidence: {TLS_VERIFICATION_UNAVAILABLE: medium}
+    probe_statuses: {DNS: PASS, TCP: PASS, TLS: FAILED}
+    probe_facts: {certificate_verified: false, valid_until: "2026-09-23T12:00:00+00:00"}
+    expected_recommendations: [tls_verification]
+- id: tls-chain-failure
+  profile: tls_chain
+  expected:
+    must_support: [TLS_VERIFICATION_UNAVAILABLE]
+    must_reject: [DEPENDENCY_TCP_UNAVAILABLE]
+    probe_statuses: {TLS: FAILED}
+    probe_facts: {chain_verified: false, valid_until: "2027-09-01T00:00:00+00:00"}
+- id: backend-http-500
+  profile: http_500
+  golden: true
+  known_gaps: ["support:BACKEND_HTTP_ERROR"]
+  expected:
+    must_support: [BACKEND_HTTP_ERROR]
+    must_reject: [TLS_VERIFICATION_UNAVAILABLE, DEPENDENCY_TCP_UNAVAILABLE]
+    must_not_include: [APICAST_NO_READY_RUNTIME_ENDPOINT]
+    probe_statuses: {DNS: PASS, TCP: PASS, TLS: PASS, HTTPS: PASS}
+    probe_facts: {http_status: 500}
+- id: backend-timeout
+  profile: timeout
+  known_gaps: ["support:BACKEND_TIMEOUT"]
+  expected:
+    must_support: [BACKEND_TIMEOUT]
+    must_reject: [TLS_VERIFICATION_UNAVAILABLE, DEPENDENCY_TCP_UNAVAILABLE]
+    probe_statuses: {TLS: PASS, HTTPS: FAILED}
+    evidence_categories: [metric, log, trace, probe]
+- id: service-no-endpoints
+  profile: no_endpoints
+  expected:
+    must_support: [SERVICE_NO_READY_ENDPOINT]
+    expected_confidence: {SERVICE_NO_READY_ENDPOINT: high}
+    must_not_include: [ROUTE_TARGET_MISSING]
+- id: route-missing-target
+  profile: route_missing
+  expected:
+    must_support: [ROUTE_TARGET_MISSING]
+    expected_confidence: {ROUTE_TARGET_MISSING: high}
+    unresolved_kinds: [Service]
+- id: missing-configmap
+  profile: configmap
+  known_gaps: ["support:CONFIGURATION_REFERENCE_UNRESOLVED"]
+  expected:
+    must_detect: [CONFIGURATION_REFERENCE_UNRESOLVED]
+    must_support: [CONFIGURATION_REFERENCE_UNRESOLVED]
+    unresolved_kinds: [ConfigMap]
+- id: missing-secret-reference
+  profile: secret
+  known_gaps: ["support:CONFIGURATION_REFERENCE_UNRESOLVED"]
+  expected:
+    must_detect: [CONFIGURATION_REFERENCE_UNRESOLVED]
+    must_support: [CONFIGURATION_REFERENCE_UNRESOLVED]
+    unresolved_kinds: [Secret]
+- id: redis-storage-failure
+  profile: redis_storage
+  golden: true
+  expected:
+    must_support: [DEPENDENCY_TCP_UNAVAILABLE]
+    must_detect: [BACKEND_EXTERNAL_REDIS_DEPENDENCY_UNRESOLVED]
+    must_not_include: [BACKEND_EXTERNAL_REDIS_DEPENDENCY_UNRESOLVED, TLS_VERIFICATION_UNAVAILABLE]
+    expected_confidence: {BACKEND_EXTERNAL_REDIS_DEPENDENCY_UNRESOLVED: low}
+    probe_statuses: {TCP: FAILED}
+- id: redis-queues-failure
+  profile: redis_queues
+  expected:
+    must_support: [DEPENDENCY_TCP_UNAVAILABLE]
+    must_detect: [BACKEND_EXTERNAL_REDIS_DEPENDENCY_UNRESOLVED]
+    must_not_include: [BACKEND_EXTERNAL_REDIS_DEPENDENCY_UNRESOLVED]
+    probe_statuses: {TCP: FAILED}
+- id: system-redis-failure
+  profile: system_redis
+  expected:
+    must_support: [DEPENDENCY_TCP_UNAVAILABLE]
+    must_detect: [SYSTEM_EXTERNAL_REDIS_DEPENDENCY_UNRESOLVED]
+    must_not_include: [SYSTEM_EXTERNAL_REDIS_DEPENDENCY_UNRESOLVED]
+- id: system-database-failure
+  profile: system_db
+  expected:
+    must_support: [DEPENDENCY_TCP_UNAVAILABLE]
+    must_detect: [SYSTEM_DATABASE_DEPENDENCY_UNRESOLVED]
+    must_not_include: [SYSTEM_DATABASE_DEPENDENCY_UNRESOLVED]
+- id: apicast-pod-failure
+  profile: apicast_crash
+  expected:
+    must_support: [POD_CRASH_LOOP, APICAST_NO_READY_RUNTIME_ENDPOINT]
+    must_not_include: [TLS_VERIFICATION_UNAVAILABLE]
+- id: observability-only-support
+  profile: observability
+  expected:
+    inconclusive: true
+    evidence_categories: [log, metric, trace]
+    must_not_include: [BACKEND_HTTP_ERROR, TLS_VERIFICATION_UNAVAILABLE]
+- id: contradictory-evidence
+  profile: contradiction
+  golden: true
+  known_gaps: ["support:BACKEND_HTTP_ERROR"]
+  expected:
+    must_support: [BACKEND_HTTP_ERROR]
+    must_reject: [TLS_VERIFICATION_UNAVAILABLE]
+    preserve_contradictions: true
+    evidence_categories: [log, probe]
+    probe_facts: {certificate_verified: true, http_status: 500}
+- id: stale-history
+  profile: history
+  expected:
+    historical_context: true
+    inconclusive: true
+    must_not_include: [SERVICE_NO_READY_ENDPOINT, TLS_VERIFICATION_UNAVAILABLE]
+- id: insufficient-evidence
+  profile: insufficient
+  expected:
+    inconclusive: true
+    min_evidence: 0
+    must_not_include: [TLS_VERIFICATION_UNAVAILABLE, DEPENDENCY_TCP_UNAVAILABLE]
+- id: partial-discovery
+  profile: partial
+  expected:
+    inconclusive: true
+    partial: true
+    must_not_include: [SERVICE_NO_READY_ENDPOINT]
+- id: active-probes-disabled
+  profile: disabled
+  expected:
+    inconclusive: true
+    must_not_include: [TLS_VERIFICATION_UNAVAILABLE, DEPENDENCY_TCP_UNAVAILABLE]
+- id: provider-failure
+  profile: provider_down
+  expected:
+    partial: true
+    evidence_categories: [log, trace]
+- id: secret-in-log
+  profile: secret_log
+  expected:
+    evidence_categories: [log]
+    must_not_include: [TLS_VERIFICATION_UNAVAILABLE]
+- id: malicious-annotation
+  profile: annotation
+  expected:
+    must_not_include: [POD_CRASH_LOOP]
+- id: malicious-event
+  profile: event
+  expected:
+    evidence_categories: [event]
+    must_not_include: [POD_CRASH_LOOP]
+- id: malicious-trace-attribute
+  profile: trace_attack
+  expected:
+    evidence_categories: [trace]
+- id: ssrf-attempt
+  profile: ssrf
+  expected:
+    probe_statuses: {DNS: BLOCKED, TCP: BLOCKED}
+    must_not_include: [DEPENDENCY_TCP_UNAVAILABLE, TLS_VERIFICATION_UNAVAILABLE]
+- id: unapproved-target
+  profile: unapproved_target
+  expected:
+    must_not_include: [DEPENDENCY_TCP_UNAVAILABLE, TLS_VERIFICATION_UNAVAILABLE]
+- id: unauthorized-environment
+  profile: unauthorized
+  expected:
+    error: authorization
+    min_evidence: 0
+- id: unauthorized-diagnosis
+  profile: denied
+  expected:
+    error: authorization
+    min_evidence: 0
+- id: large-data
+  profile: large
+  expected:
+    partial: true
+    max_evidence: 40
+- id: duplicate-evidence
+  profile: duplicates
+  expected:
+    evidence_categories: [log, metric, trace]
+    must_not_include: [TLS_VERIFICATION_UNAVAILABLE]
+- id: runtime-contradiction
+  profile: runtime_contradiction
+  expected:
+    inconclusive: true
+    preserve_contradictions: true
+    expected_confidence: {SERVICE_NO_READY_ENDPOINT: low}
+    must_not_include: [SERVICE_NO_READY_ENDPOINT]
+- id: healthy-control
+  profile: healthy
+  expected:
+    must_reject: [SERVICE_NO_READY_ENDPOINT, TLS_VERIFICATION_UNAVAILABLE, DEPENDENCY_TCP_UNAVAILABLE]
+    must_not_include: [POD_CRASH_LOOP]

@@ -24,8 +24,10 @@ def test_required_docs_and_current_checkpoint():
         "docs/architecture/observability-correlation.md",
         "docs/security/observability-data-access.md",
         "docs/development/sprint-8-validation.md",
+        "docs/development/diagnostic-scenario-harness.md",
+        "docs/development/sprint-9-validation.md",
     ):
         assert (ROOT / path).is_file()
     state = (ROOT / "PROJECT_STATE.md").read_text(encoding="utf-8")
-    assert "Sprint: 8" in state and "Impact: HIGH" in state
-    assert "Base commit: 14cbc5f14c5072300180cfe6a31e6aab737bcd2f" in state
+    assert "Sprint: 9" in state and "Impact: MEDIUM" in state
+    assert "Base commit: 789dd79c95c374b3ab87f6a4e7b2320abb15dac5" in state
