@@ -26,7 +26,7 @@ def test_diagnostic_contract(case, results, request, caplog):
         result = asyncio.run(ScenarioRunner(application).run(scenario))
     results[case.id] = result
     assert "fake-scenario-secret" not in result.model_dump_json() + caplog.text
-    if request.config.getoption("--scenario-acceptance"):
+    if case.golden or request.config.getoption("--scenario-acceptance"):
         assert result.status == "PASS", result.failed_assertions
     assert set(result.failed_assertions) == set(case.known_gaps), result.failed_assertions
     # Known detection gaps stay FAIL in the report, never converted to scenario PASS.
@@ -40,7 +40,7 @@ def test_suite_report(results):
     assert report.total == report.passed + report.failed
     assert report.golden_total == report.golden_passed + report.golden_failed
     assert report.false_positive_failures == 0
-    assert report.failed == sum(bool(c.known_gaps) for c in CASES if c.id in results)
+    assert report.failed == 0
     (Path(__file__).resolve().parents[2] / "sprint9-scenarios.json.tmp").write_text(
         report.model_dump_json(indent=2), encoding="utf-8"
     )

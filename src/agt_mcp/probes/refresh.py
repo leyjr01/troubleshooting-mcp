@@ -1,5 +1,7 @@
 """Refresh correlation with original runtime evidence plus typed probe observations."""
 
+from datetime import datetime
+
 from agt_mcp.core.execution import ExecutionContext
 from agt_mcp.correlation.models import (
     CorrelationResult,
@@ -44,9 +46,39 @@ async def reevaluate(
         result = probe.result
         signals: tuple[SignalCode, ...] = ()
         if result.status in {ProbeStatus.PASS, ProbeStatus.FAILED}:
+            if result.probe_type == ProbeType.DNS:
+                if result.status == ProbeStatus.PASS and result.observation.addresses:
+                    signals = (SignalCode.PROBE_DNS_RESOLVED,)
+                elif result.status == ProbeStatus.FAILED and result.error_category in {
+                    "DNS_RESOLUTION_FAILED",
+                    "DNS_TIMEOUT",
+                }:
+                    signals = (SignalCode.PROBE_DNS_FAILED,)
+            if result.probe_type in {ProbeType.HTTP, ProbeType.HTTPS}:
+                status = result.observation.http_status
+                if result.status == ProbeStatus.PASS and status is not None:
+                    signals = (
+                        SignalCode.PROBE_HTTP_RESPONSE,
+                        SignalCode.PROBE_HTTP_SERVER_ERROR
+                        if status >= 500
+                        else SignalCode.PROBE_HTTP_NON_SERVER_ERROR,
+                    )
+                elif (
+                    result.status == ProbeStatus.FAILED and result.error_category == "HTTP_TIMEOUT"
+                ):
+                    signals = (SignalCode.PROBE_HTTP_TIMEOUT,)
             if result.probe_type == ProbeType.TLS:
                 if result.observation.certificate_verified is False:
                     signals = (SignalCode.PROBE_TLS_FAILED,)
+                    if result.observation.chain_verified is False:
+                        signals += (SignalCode.PROBE_TLS_CHAIN_FAILED,)
+                    if result.observation.valid_until:
+                        try:
+                            expiry = datetime.fromisoformat(result.observation.valid_until)
+                            if expiry.tzinfo is not None and expiry < result.timestamp:
+                                signals += (SignalCode.PROBE_TLS_EXPIRED,)
+                        except ValueError:
+                            pass  # Unparseable dates cannot establish certificate expiry.
                 elif result.observation.certificate_verified is True:
                     signals = (SignalCode.PROBE_TLS_VERIFIED,)
             if result.probe_type == ProbeType.TCP:

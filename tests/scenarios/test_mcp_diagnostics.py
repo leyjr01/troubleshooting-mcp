@@ -14,6 +14,7 @@ from tests.scenarios.fixtures import application, definitions, fixed_world, mate
     "name",
     [
         "backend-down",
+        "backend-http-500",
         "tls-expired",
         "contradictory-evidence",
         "secret-in-log",

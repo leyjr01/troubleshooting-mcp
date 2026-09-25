@@ -1,6 +1,7 @@
 """Deterministic statuses and qualitative confidence, with explicit missing evidence."""
 
 from agt_mcp.core.models import ConfidenceLevel
+from agt_mcp.correlation.models import SignalCode
 from agt_mcp.troubleshooting.catalog import HypothesisCatalog
 from agt_mcp.troubleshooting.generator import initial_confidence
 from agt_mcp.troubleshooting.models import (
@@ -35,7 +36,17 @@ class HypothesisEvaluator:
         if definition.rule == RuleKind.EXTERNAL:
             status = EvaluationStatus.INCONCLUSIVE
             reasons.append("external_connectivity_unverified")
-        elif definition.rule in {RuleKind.PROBE_TLS, RuleKind.PROBE_TCP} and missing:
+        elif (
+            definition.rule
+            in {
+                RuleKind.PROBE_TLS,
+                RuleKind.PROBE_TCP,
+                RuleKind.PROBE_DNS,
+                RuleKind.PROBE_HTTP,
+                RuleKind.PROBE_TIMEOUT,
+            }
+            and missing
+        ):
             status = EvaluationStatus.INCONCLUSIVE
             reasons.append("network_probe_evidence_missing")
         elif limited or incompatible:
@@ -58,6 +69,18 @@ class HypothesisEvaluator:
             reasons.append("no_decisive_runtime_evidence")
         if h.historical_refs or h.knowledge_refs:
             reasons.append("references_are_not_runtime_support")
+        statement = h.statement
+        if definition.rule == RuleKind.PROBE_TLS and status == EvaluationStatus.SUPPORTED:
+            signals = {s for i in support for s in view.states[i].signals}
+            if SignalCode.PROBE_TLS_EXPIRED in signals:
+                reasons.append("tls_certificate_expired")
+                statement = "TLS certificate expired at the observed probe time"
+            if SignalCode.PROBE_TLS_CHAIN_FAILED in signals:
+                reasons.append("tls_chain_unverified")
+                if SignalCode.PROBE_TLS_EXPIRED not in signals:
+                    statement = (
+                        "TLS certificate chain/trust verification failed; expiry not inferred"
+                    )
         sources = {view.evidence[i].source.source_id for i in support}
         origins = {view.states[i].origin for i in support}
         independent = len(sources) > 1 and len(origins) > 1
@@ -107,4 +130,4 @@ class HypothesisEvaluator:
             reason_codes=tuple(reasons),
             provenance=tuple(unique[k] for k in sorted(unique)),
         )
-        return h.model_copy(update={"evaluation": evaluation})
+        return h.model_copy(update={"evaluation": evaluation, "statement": statement})

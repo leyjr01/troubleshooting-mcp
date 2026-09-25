@@ -28,6 +28,22 @@ def requirement(
 
 
 REQUIREMENTS = {
+    RuleKind.PROBE_DNS: (
+        requirement(
+            "dns_resolution", "Inspect DNS resolution from probe vantage point", "dns.resolve", True
+        ),
+    ),
+    RuleKind.PROBE_HTTP: (
+        requirement(
+            "http_response",
+            "Inspect the approved backend HTTP response status",
+            "http.request",
+            True,
+        ),
+    ),
+    RuleKind.PROBE_TIMEOUT: (
+        requirement("http_timing", "Inspect backend HTTP timeout evidence", "http.request", True),
+    ),
     RuleKind.PROBE_TLS: (
         requirement("tls_verification", "Observe verified TLS connection", "tls.handshake", True),
     ),
@@ -69,6 +85,20 @@ REQUIREMENTS = {
             "DEPENDENCY_CONNECTIVITY_NOT_AVAILABLE",
             True,
         ),
+    ),
+}
+
+
+TLS_RECOMMENDATIONS = {
+    "tls_certificate_expired": requirement(
+        "tls_certificate_validity",
+        "Validate certificate validity and deployed reference; recommend renewal or replacement "
+        "of the expired certificate through the approved change process; execute nothing",
+    ),
+    "tls_chain_unverified": requirement(
+        "tls_certificate_chain",
+        "Validate the deployed certificate chain, trust anchors and certificate reference; "
+        "do not infer expiry from chain failure",
     ),
 }
 

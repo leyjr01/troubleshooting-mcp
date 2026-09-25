@@ -25,6 +25,9 @@ class SafetyClass(StrEnum):
 
 
 class RuleKind(StrEnum):
+    PROBE_DNS = "probe_dns"
+    PROBE_HTTP = "probe_http"
+    PROBE_TIMEOUT = "probe_timeout"
     PROBE_TLS = "probe_tls"
     PROBE_TCP = "probe_tcp"
     AVAILABILITY = "availability"

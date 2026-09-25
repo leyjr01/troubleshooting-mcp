@@ -9,7 +9,6 @@
 - id: dns-failure
   profile: dns
   golden: true
-  known_gaps: ["support:DNS_RESOLUTION_FAILURE"]
   expected:
     must_support: [DNS_RESOLUTION_FAILURE]
     must_not_include: [TLS_VERIFICATION_UNAVAILABLE, DEPENDENCY_TCP_UNAVAILABLE]
@@ -24,7 +23,6 @@
 - id: tls-expired
   profile: tls_expired
   golden: true
-  known_gaps: ["recommend:tls_verification"]
   expected:
     must_support: [TLS_VERIFICATION_UNAVAILABLE]
     must_reject: [DEPENDENCY_TCP_UNAVAILABLE]
@@ -42,7 +40,6 @@
 - id: backend-http-500
   profile: http_500
   golden: true
-  known_gaps: ["support:BACKEND_HTTP_ERROR"]
   expected:
     must_support: [BACKEND_HTTP_ERROR]
     must_reject: [TLS_VERIFICATION_UNAVAILABLE, DEPENDENCY_TCP_UNAVAILABLE]
@@ -51,7 +48,6 @@
     probe_facts: {http_status: 500}
 - id: backend-timeout
   profile: timeout
-  known_gaps: ["support:BACKEND_TIMEOUT"]
   expected:
     must_support: [BACKEND_TIMEOUT]
     must_reject: [TLS_VERIFICATION_UNAVAILABLE, DEPENDENCY_TCP_UNAVAILABLE]
@@ -71,14 +67,12 @@
     unresolved_kinds: [Service]
 - id: missing-configmap
   profile: configmap
-  known_gaps: ["support:CONFIGURATION_REFERENCE_UNRESOLVED"]
   expected:
     must_detect: [CONFIGURATION_REFERENCE_UNRESOLVED]
     must_support: [CONFIGURATION_REFERENCE_UNRESOLVED]
     unresolved_kinds: [ConfigMap]
 - id: missing-secret-reference
   profile: secret
-  known_gaps: ["support:CONFIGURATION_REFERENCE_UNRESOLVED"]
   expected:
     must_detect: [CONFIGURATION_REFERENCE_UNRESOLVED]
     must_support: [CONFIGURATION_REFERENCE_UNRESOLVED]
@@ -125,7 +119,6 @@
 - id: contradictory-evidence
   profile: contradiction
   golden: true
-  known_gaps: ["support:BACKEND_HTTP_ERROR"]
   expected:
     must_support: [BACKEND_HTTP_ERROR]
     must_reject: [TLS_VERIFICATION_UNAVAILABLE]

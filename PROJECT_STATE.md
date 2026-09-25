@@ -1,9 +1,10 @@
 ﻿# PROJECT_STATE
 
 ## Current baseline
-Current Sprint: 9 — Failure Scenario Harness & Diagnostic Validation (PARTIAL).
-Commit: HEAD — feat: add diagnostic scenario validation harness (Sprint 9).
-Base commit: 789dd79c95c374b3ab87f6a4e7b2320abb15dac5 (Sprint 8).
+Current Sprint: 9.1 — Diagnostic Candidate Promotion & Recommendation Fixes.
+Corrective status: PASS. Sprint 9 final status: PASS after Sprint 9.1.
+Commit: HEAD — fix: close Sprint 9 diagnostic validation gaps.
+Base commit: 24a6a931bed6898931fc2d64de329213aeefdf87 (Sprint 9 PARTIAL).
 Exactly one sprint commit follows this base.
 Resolve with git log -1 --format="%H %s" -- PROJECT_STATE.md.
 Containing commit reference avoids a self-referential hash.
@@ -16,7 +17,7 @@ Local committed Git, curated documents and incident sources; sanitized lexical r
 Indexes/manifests are derived, rebuildable and process-local; Git remains authoritative.
 Correlation supplies one bounded snapshot, timeline, provenance and scoped references.
 Troubleshooting: injected catalog → generation → evaluation → candidates → safe plan.
-17 generic/Kubernetes/3scale/network definitions; typed states, coverage and expectations.
+20 generic/Kubernetes/3scale/network definitions; typed states, coverage and expectations.
 Explicit support/contradiction/missing evidence; LOW/MEDIUM/HIGH confidence with rationale.
 Only SUPPORTED hypotheses promote to candidates for observed conditions.
 Optional IncidentBundle.correlations/troubleshooting preserve existing fields.
@@ -29,8 +30,11 @@ Scoped UTC queries → redacted Evidence → existing correlation refresh and ev
 Events/ProbeEvidence reuse; descriptive timeline, cached VirtualTrace enrichment, partial sources.
 FailureScenario/ExpectedDiagnosis → ScenarioRunner → semantic assertions and structured report.
 Runner reuses Runtime.execute and existing diagnosis/trace/probe/observability services.
-Fixed fixtures, controlled clocks, fake sources/executor; five real in-process MCP cases.
-Impact: MEDIUM; validation-only changes, no engine expansion or production integration.
+Fixed fixtures, controlled clocks, fake sources/executor; six real in-process MCP cases.
+Existing probe refresh now maps DNS, HTTP response/timeout and TLS certificate facts.
+Scoped explicit not_found references can support a missing configuration candidate.
+Existing evaluator/promotion/confidence pipeline and planner remain authoritative.
+Impact: MEDIUM; concentrated diagnostic fixes, no new external integration or architecture.
 
 ## Current MCP tools
 System/inventory: system_health, list_capabilities, list_environments, list_gateways,
@@ -77,22 +81,22 @@ Defaults: 16 hypotheses, 8 candidates, 12 steps, 10 evidence/hypothesis, 12 comp
 Cache: 16 results, 300-second TTL; correlation bounds and response-byte bounds also apply.
 
 ## Current test status
-Sprint 8 baseline: 995 tests, 97.30% branch-inclusive coverage; gate remains >=96%.
-Sprint 9 minimal baseline: 40 hypothesis tests PASS, reused without rerun.
-L1/L2: 35 scenario contracts + report, 22 harness tests and 5 MCP cases PASS.
-Only the four failed MCP driver cases were rerun after their invocation correction.
-Diagnostic acceptance: 35 total, 28 PASS, 7 FAIL; golden 6 total, 2 PASS, 4 FAIL.
-Expected inconclusive: 6; false positives: 0; false negatives: 6; recommendation failures: 1.
-Known gaps remain FAIL in reports; passing regression contracts do not imply acceptance.
-Strict gate: pytest -m golden --scenario-acceptance; currently fails diagnostic acceptance.
-Single full run: 1023 PASS, 35 option-registration failures; coverage 97.36% (gate PASS).
-Moved pytest option registration to tests/conftest.py; only affected marker rerun: 36 PASS.
-Consolidated regression: 1058 unique tests PASS, 0 remaining failures/errors/skips; 63 new.
-All 995 existing tests retained. Source unchanged after coverage; only test hook/docs changed.
-Strict golden acceptance executed: 2 PASS, 4 FAIL, matching the diagnostic report.
-Architecture/security checks reused from full run; no second complete regression.
-Ruff lint/format PASS (288 files); strict mypy PASS (133 source files); Bandit/pip check PASS.
-Documentation/checkpoint checks PASS; affected documentation rechecked after final updates.
+Historical Sprint 9 full run: 1023 PASS, 35 test-option failures; focused repair 36 PASS.
+Historical consolidated regression: 1058 PASS, coverage 97.36%; diagnostic acceptance PARTIAL.
+Sprint 9.1 baseline union of seven failing cases and golden subset: 7 FAIL, 2 PASS.
+L1 corrected seven cases: 7 PASS, unchanged semantic expectations.
+L1 evaluator/probe/negative/recommendation tests: 93 PASS (33 new focused tests).
+L2 strict scenario/harness/MCP checkpoint: 64 PASS, including 35/35 scenarios and 6/6 golden.
+Expected inconclusive: 6; false positives: 0; false negatives: 0; recommendation failures: 0.
+Golden now unconditionally requires PASS; aggregate report requires zero failed scenarios.
+All seven known-gap allowances removed; original required/forbidden conclusions preserved.
+Single final full regression: 1092 PASS, 0 failures/errors/skips, 259.70 seconds.
+All 1058 baseline tests retained; 34 added (33 focused controls and one affected MCP case).
+Strict diagnostic acceptance enabled in the complete run; no second full regression.
+Coverage: 97.38%, branch-inclusive; corrective >=97% gate PASS, no exclusions added.
+Lint/format PASS (289 files), strict mypy PASS (133 source files), Bandit/pip check PASS.
+Documentation/checkpoint rechecked after final numbers; no source changes after full run.
+Coverage target >=97% for this correction; existing project minimum >=96% unchanged.
 AGENTS.md unchanged; no dependencies, coverage exclusions or new ADR.
 
 ## Known limitations and next scope
@@ -109,13 +113,19 @@ Existing total Evidence/depth/request-byte limits still apply; no metric-only ro
 OS DNS worker may finish after cancellation; late results never create connections.
 Local Git only; no remote fetch. Explicit programmatic refresh; CLI index starts empty.
 Lexical embeddings, ephemeral indexes/caches, pattern-based redaction.
-Sprint 9 blind spots: no DNS/HTTP-error/timeout candidate; unresolved configuration
-requirements prevent ConfigMap/Secret candidate promotion; target TLS validation step absent.
-Contradiction case preserves evidence and rejects TLS but lacks backend HTTP-error candidate.
-TLS expiry and chain retain distinct facts but share the generic TLS candidate.
+Seven Sprint 9 gaps corrected: DNS, HTTP 500, timeout, ConfigMap, SecretReference,
+contradictory TLS-log/HTTP evidence and target TLS validation recommendation.
+TLS expiry and chain share the stable hypothesis ID but have distinct reason codes,
+candidate descriptions and inspection requirements when direct certificate facts exist.
+Unknown/unzoned expiry cannot prove expiration; unknown chain facts stay generic.
+Missing references require current explicit not_found and workload evidence;
+forbidden/not_observed remain blocked. No Secret contents are read or exposed.
+HTTP timeout identifies an observed request timeout, not the underlying latency cause.
+No global probe-over-log priority; relevant semantic counterevidence is preserved.
 Redis/DB target-specific TCP candidates do not establish protocol failure (approved rule).
 Only fixture mode implemented; real-lab is a documented future extension.
-Next: authorize focused engine catalog/requirements/plan work, then pass strict golden gate.
+Sprint 10 baseline: this containing corrective commit; resolve using the Git command above.
+No mandatory Sprint 9/9.1 item remains pending.
 
 ## Relevant ADRs and documents
 0003 models; 0004 config/secrets; 0007 datasource; 0009 RAG; 0010 security;
@@ -129,23 +139,20 @@ Validation: docs/development/sprint-9-validation.md; earlier sprint reports reta
 Harness: docs/development/diagnostic-scenario-harness.md.
 
 ## SPRINT CHECKPOINT
-Sprint: 9
+Sprint: 9.1
 Commit: HEAD (single containing commit; resolve using command above).
-Base commit: 789dd79c95c374b3ab87f6a4e7b2320abb15dac5
-Expected commit subject: feat: add diagnostic scenario validation harness (Sprint 9)
-Status: PARTIAL (diagnostic acceptance has seven failures; four golden).
+Base commit: 24a6a931bed6898931fc2d64de329213aeefdf87
+Expected commit subject: fix: close Sprint 9 diagnostic validation gaps
+Status: PASS. Sprint 9 final status: PASS.
 Impact: MEDIUM
-Capabilities: typed fixtures, ScenarioRunner, semantic expectations and structured reports.
-Scenarios: 35 total, 28 PASS, 7 FAIL; golden 6 total, 2 PASS, 4 FAIL.
-Inconclusive expected: 6; false positives: 0; false negatives: 6; recommendation failures: 1.
+Fixes: DNS/HTTP/timeout and missing configuration promotion; TLS-specific recommendations.
+Scenarios: 35 total, 35 PASS, 0 FAIL; golden 6 total, 6 PASS, 0 FAIL.
+Inconclusive expected: 6; false positives: 0; false negatives: 0; recommendation failures: 0.
 Architecture: existing application and evaluator reused; no duplicate engine or new adapter.
 New ADR: NONE; existing approved decisions preserved.
 Security: fake sources, no real network, redaction, provenance, SSRF and authorization checks.
-Tests: 1058 unique regression tests PASS after focused repair; 63 new, all 995 prior retained.
-Validation: one full run (1023 PASS, 35 test-hook failures), focused marker repair 36 PASS.
-Quality: lint/format/mypy/Bandit/dependencies PASS; architecture/security results reused.
-Golden strict acceptance: 2 PASS, 4 FAIL; remains a failed critical diagnostic gate.
-Coverage: 97.36%, branch-inclusive; source unchanged after measurement.
-Coverage gate: >=96%, branch-inclusive; no new exclusions or dependencies.
-Limits: missing DNS/HTTP/timeout diagnosis, configuration promotion and TLS recommendation.
-Next: explicitly scoped engine work for seven failures; require strict golden acceptance.
+Tests: L1 93 PASS; strict L2 64 PASS; single full regression 1092 PASS, 0 failures/errors/skips.
+Quality: lint/format/mypy/Bandit/dependencies and documentation PASS.
+Coverage: 97.38%, branch-inclusive; corrective >=97% gate PASS, project minimum >=96%.
+Limits: offline fixtures, observed conditions only, no Redis/DB protocol proof or remediation.
+Next: Sprint 10 baseline is this verified containing commit. No corrective items pending.

@@ -155,15 +155,29 @@ def external(view: EvidenceView, h: HypothesisInstance) -> Assessment:
 def reference(view: EvidenceView, h: HypothesisInstance) -> Assessment:
     links = (
         tuple(
-            e.id
+            e
             for e in view.result.semantic_links
             if e.source in h.resources and e.relation.startswith("unresolved_")
         )
         if view.structure_current
         else ()
     )
+    # Only an explicit scoped not_found fact proves absence. RBAC, unsupported
+    # collection and metadata-only not_observed Secret references do not.
+    absent = tuple(
+        e
+        for e in links
+        if e.relation == "unresolved_not_found"
+        and e.target_kind in {"ConfigMap", "Secret"}
+        and view.result.context.time_window.start
+        <= e.provenance.retrieved_at
+        <= view.result.context.time_window.end
+    )
+    support = view.select(h.resources) if absent else ()
     return Assessment(
-        view.select(h.resources) if links else (), missing=("dependency_reference",), topology=links
+        support,
+        missing=() if support else ("dependency_reference",),
+        topology=tuple(e.id for e in links),
     )
 
 
@@ -182,7 +196,32 @@ def probe_tcp(view: EvidenceView, h: HypothesisInstance) -> Assessment:
     return Assessment(support, contra, () if support or contra else ("tcp_connectivity",))
 
 
+def probe_condition(
+    view: EvidenceView,
+    h: HypothesisInstance,
+    positive: SignalCode,
+    negative: SignalCode,
+    requirement: str,
+) -> Assessment:
+    support = view.select(h.resources, signal=positive)
+    contra = view.select(h.resources, signal=negative)
+    return Assessment(support, contra, () if support or contra else (requirement,))
+
+
 RULES: dict[RuleKind, Rule] = {
+    RuleKind.PROBE_DNS: lambda view, h: probe_condition(
+        view, h, SignalCode.PROBE_DNS_FAILED, SignalCode.PROBE_DNS_RESOLVED, "dns_resolution"
+    ),
+    RuleKind.PROBE_HTTP: lambda view, h: probe_condition(
+        view,
+        h,
+        SignalCode.PROBE_HTTP_SERVER_ERROR,
+        SignalCode.PROBE_HTTP_NON_SERVER_ERROR,
+        "http_response",
+    ),
+    RuleKind.PROBE_TIMEOUT: lambda view, h: probe_condition(
+        view, h, SignalCode.PROBE_HTTP_TIMEOUT, SignalCode.PROBE_HTTP_RESPONSE, "http_timing"
+    ),
     RuleKind.PROBE_TLS: probe_tls,
     RuleKind.PROBE_TCP: probe_tcp,
     RuleKind.AVAILABILITY: availability,

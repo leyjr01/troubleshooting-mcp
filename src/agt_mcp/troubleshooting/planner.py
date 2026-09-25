@@ -1,7 +1,7 @@
 """Produce inspection descriptions only; there is deliberately no executor."""
 
 from agt_mcp.correlation.rules import identity
-from agt_mcp.troubleshooting.catalog import HypothesisCatalog
+from agt_mcp.troubleshooting.catalog import TLS_RECOMMENDATIONS, HypothesisCatalog
 from agt_mcp.troubleshooting.models import (
     HypothesisInstance,
     SafetyClass,
@@ -21,6 +21,12 @@ class TroubleshootingPlanner:
                 h.evaluation.missing_evidence
                 or self.catalog.by_id[h.definition_id].optional_evidence
             )
+            if h.evaluation.status == "SUPPORTED":
+                requirements += tuple(
+                    TLS_RECOMMENDATIONS[code]
+                    for code in h.evaluation.reason_codes
+                    if code in TLS_RECOMMENDATIONS
+                )
             for requirement in requirements:
                 key = (h.subject, requirement.id)
                 previous = steps.get(key)

@@ -74,6 +74,14 @@ class RelationType(StrEnum):
 
 
 class SignalCode(StrEnum):
+    PROBE_DNS_FAILED = "probe_dns_failed"
+    PROBE_DNS_RESOLVED = "probe_dns_resolved"
+    PROBE_HTTP_SERVER_ERROR = "probe_http_server_error"
+    PROBE_HTTP_NON_SERVER_ERROR = "probe_http_non_server_error"
+    PROBE_HTTP_RESPONSE = "probe_http_response"
+    PROBE_HTTP_TIMEOUT = "probe_http_timeout"
+    PROBE_TLS_EXPIRED = "probe_tls_expired"
+    PROBE_TLS_CHAIN_FAILED = "probe_tls_chain_failed"
     PROBE_TLS_FAILED = "probe_tls_failed"
     PROBE_TLS_VERIFIED = "probe_tls_verified"
     PROBE_TCP_FAILED = "probe_tcp_failed"
