@@ -40,6 +40,7 @@ See the [compatibility matrix](docs/release/compatibility.md).
 
 ## Documentation and release
 
+- [Guia completo em português: instalação, FastMCP e uso das 38 ferramentas](INSTRUCTIONS.md)
 - [Release notes and post-1.0 backlog](docs/release/v1.0.0.md)
 - [Changelog](CHANGELOG.md)
 - [Kubernetes](docs/deployment/kubernetes.md) and [OpenShift](docs/deployment/openshift.md)
