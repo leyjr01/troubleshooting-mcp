@@ -71,6 +71,7 @@ class ThreeScaleGatewayAdapter(GatewayAdapter):
             and query.namespace != self.settings.namespace
         ):
             raise AuthorizationError()
+        primary_namespace = query.namespace or self.settings.namespace
         execution = (
             context
             if isinstance(context, ExecutionContext)
@@ -84,7 +85,10 @@ class ThreeScaleGatewayAdapter(GatewayAdapter):
         snapshot = await self.runtime.discover(
             execution,
             RuntimeQuery(
-                namespace=query.namespace or self.settings.namespace,
+                # Namespace selection belongs to the runtime allowlist.  The gateway
+                # namespace identifies the APIManager, not the complete installation:
+                # APIcast resources may live in another authorized namespace.
+                namespace=None,
                 limit=query.limit,
                 depth=query.depth,
             ),
@@ -100,11 +104,17 @@ class ThreeScaleGatewayAdapter(GatewayAdapter):
             )
         ):
             raise AuthorizationError()
-        namespace = query.namespace or self.settings.namespace
-        if namespace and any(n.namespace not in {None, namespace} for n in snapshot.topology.nodes):
+        authorized_namespaces = set(snapshot.namespaces)
+        if primary_namespace and primary_namespace not in authorized_namespaces:
+            raise AuthorizationError()
+        if any(
+            n.namespace is not None and n.namespace not in authorized_namespaces
+            for n in snapshot.topology.nodes
+        ):
             raise AuthorizationError()
         classifier = ThreeScaleComponentClassifier(
             snapshot,
+            primary_namespace=primary_namespace,
             version_profile=self.settings.version_profile,
             max_edges=self.max_edges,
             max_components=self.max_components,

@@ -109,6 +109,68 @@ def test_multiple_installations_cannot_mix_namespaces():
     )
 
 
+def test_external_apicast_is_associated_with_the_apimanager_installation():
+    resources = [
+        resource
+        for resource in healthy_resources("apim")
+        if not resource["metadata"]["name"].startswith("apicast-")
+    ]
+    resources.extend(
+        resource
+        for resource in healthy_resources("apicast")
+        if resource["metadata"]["name"].startswith("apicast-")
+    )
+    snap, _ = snapshot(resources, config(("apim", "apicast")))
+
+    installations = ThreeScaleComponentClassifier(snap, primary_namespace="apim").classify()
+
+    assert len(installations) == 1
+    installation = installations[0]
+    assert installation.namespace == "apim"
+    runtime = {node.id: node for node in snap.topology.nodes}
+    apicast_components = [
+        component
+        for component in installation.components
+        if component.type in {C.APICAST_STAGING, C.APICAST_PRODUCTION}
+    ]
+    assert len(apicast_components) == 2
+    assert all(component.status == Presence.PRESENT for component in apicast_components)
+    assert all(
+        runtime[resource_id].namespace == "apicast"
+        for component in apicast_components
+        for resource_id in component.runtime_resources
+    )
+
+
+def test_external_apicast_is_not_guessed_when_multiple_apimanagers_exist():
+    resources = healthy_resources("one") + healthy_resources("two")
+    resources.extend(
+        resource
+        for resource in healthy_resources("shared-apicast")
+        if resource["metadata"]["name"].startswith("apicast-")
+    )
+    snap, _ = snapshot(resources, config(("one", "two", "shared-apicast")))
+
+    installations = ThreeScaleComponentClassifier(snap).classify()
+    roots = [installation for installation in installations if installation.apimanager]
+    runtime = {node.id: node for node in snap.topology.nodes}
+
+    assert len(roots) == 2
+    assert all(
+        runtime[resource_id].namespace != "shared-apicast"
+        for installation in roots
+        for resource_id in installation.runtime_resources
+    )
+
+    selected = ThreeScaleComponentClassifier(snap, primary_namespace="one").classify()
+    assert len(selected) == 1
+    assert selected[0].namespace == "one"
+    assert all(
+        runtime[resource_id].namespace != "shared-apicast"
+        for resource_id in selected[0].runtime_resources
+    )
+
+
 def test_partial_rbac_does_not_assert_absence():
     from agt_mcp.core.errors import AuthorizationError
 

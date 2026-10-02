@@ -40,8 +40,13 @@ Unknown or unsupported versions continue with limited expectations and warnings.
 Profile sources and verification dates are stored with the rules.
 
 Secret references can identify documented connection roles, never hosts, ports,
-users or values. External endpoints remain unresolved. Namespace and UID ownership
-boundaries separate installations; no automatic cross-namespace traversal occurs.
+users or values. External endpoints remain unresolved. The APIManager namespace is
+the installation's primary namespace, while the runtime namespace allowlist bounds
+the complete discovery snapshot. APIcast workloads in another authorized namespace
+may join the installation through product/component labels and runtime relationships
+when exactly one APIManager makes that association unambiguous. UID ownership remains
+authoritative; resources owned by another APIManager are excluded. With multiple
+APIManagers, unowned cross-namespace APIcast labels are not assigned automatically.
 Presence distinguishes PRESENT, ABSENT_EXPECTED, ABSENT_OPTIONAL, EXTERNAL,
 DISABLED and UNKNOWN. Incomplete reads cannot prove an expected component absent.
 

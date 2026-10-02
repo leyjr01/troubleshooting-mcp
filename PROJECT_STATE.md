@@ -1,5 +1,16 @@
 # PROJECT_STATE
 
+## Post-v1.0 working checkpoint — multi-namespace 3scale discovery
+Status: implementation complete; focused execution pending restoration of the local Python 3.12
+interpreter referenced by `.venv`. Ruff lint/format and `git diff --check` pass.
+ThreeScaleGatewayAdapter now requests the runtime's complete authorized namespace scope while
+retaining the configured/requested APIManager namespace as the installation's primary namespace.
+The classifier associates cross-namespace APIcast workloads only when a single APIManager makes
+the label-based association unambiguous; concrete ownership remains authoritative and competing
+APIManagers remain isolated. Single-namespace behavior and the singular Installation.namespace
+contract are preserved. Focused adapter/classifier regression tests cover both association and
+ambiguity boundaries. ADR-0014 records the revised namespace boundary.
+
 ## Current baseline
 Current Sprint: 11 — Final Hardening, Release Readiness & v1.0.0 Preparation.
 Status: PASS. v1.0.0: READY WITH LIMITATIONS; all critical technical gates passed.

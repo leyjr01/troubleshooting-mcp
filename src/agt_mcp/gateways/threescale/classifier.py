@@ -60,11 +60,13 @@ class ThreeScaleComponentClassifier:
         self,
         snapshot: RuntimeSnapshot,
         *,
+        primary_namespace: str | None = None,
         version_profile: str = "auto",
         max_edges: int = 1000,
         max_components: int = 200,
     ) -> None:
         self.snapshot = snapshot
+        self.primary_namespace = primary_namespace
         self.profile_override = version_profile
         self.max_edges, self.max_components = max_edges, max_components
         self.nodes = {n.id: n for n in snapshot.topology.nodes}
@@ -104,16 +106,27 @@ class ThreeScaleComponentClassifier:
         return found
 
     def classify(self) -> tuple[Installation, ...]:
-        roots = [
+        all_roots = [
             n
             for n in self.nodes.values()
             if n.reference
             and n.reference.kind == "APIManager"
             and n.reference.api_version == "apps.3scale.net/v1alpha1"
         ]
-        result = [self.installation(root, roots) for root in sorted(roots, key=lambda n: n.id)]
+        roots = [
+            root
+            for root in all_roots
+            if self.primary_namespace is None or root.namespace == self.primary_namespace
+        ]
+        result = [self.installation(root, all_roots) for root in sorted(roots, key=lambda n: n.id)]
         # Without an APIManager, keep only corroborated namespace-level candidates.
-        occupied = {r.namespace for r in roots}
+        occupied = {r.namespace for r in all_roots}
+        occupied.update(
+            self.nodes[resource_id].namespace
+            for installation in result
+            for resource_id in installation.runtime_resources
+            if resource_id in self.nodes
+        )
         for namespace in sorted(self.snapshot.namespaces):
             if namespace in occupied:
                 continue
@@ -142,12 +155,14 @@ class ThreeScaleComponentClassifier:
             root.id if not candidate else "unverified",
         )
         same_namespace = [r for r in roots if r.namespace == root.namespace]
+        cross_namespace_labels_allowed = len(roots) == 1
         owned = self.descendants(root.id) if not candidate else set()
-        foreign = set().union(*(self.descendants(r.id) for r in same_namespace if r.id != root.id))
+        foreign = set().union(*(self.descendants(r.id) for r in roots if r.id != root.id))
         scoped = {
             k: n
             for k, n in self.nodes.items()
-            if n.namespace == root.namespace and k not in foreign
+            if (n.namespace == root.namespace or k in owned or cross_namespace_labels_allowed)
+            and k not in foreign
         }
         warnings: list[SemanticWarning] = []
         ev_root = self.evidence(
@@ -196,7 +211,15 @@ class ThreeScaleComponentClassifier:
             hint = hints(node)
             roles = {PATTERNS[v] for v in hint.get("component_labels", []) if v in PATTERNS}
             belongs = node.id in owned
-            label_candidate = hint.get("product_label") and len(same_namespace) <= 1
+            external_apicast = (
+                node.namespace != root.namespace
+                and cross_namespace_labels_allowed
+                and bool(roles)
+                and roles <= {C.APICAST_STAGING, C.APICAST_PRODUCTION}
+            )
+            label_candidate = hint.get("product_label") and (
+                (node.namespace == root.namespace and len(same_namespace) <= 1) or external_apicast
+            )
             if not belongs and not label_candidate:
                 continue
             if not roles and belongs and node.name in PATTERNS:
@@ -265,12 +288,20 @@ class ThreeScaleComponentClassifier:
                     selected.update(expanded)
             memberships[kind] = selected
 
+        installation_resources = {root.id}.union(*memberships.values())
+        installation_namespaces = {
+            self.nodes[resource_id].namespace
+            for resource_id in installation_resources
+            if resource_id in self.nodes and self.nodes[resource_id].namespace is not None
+        }
         namespace_categories = [
-            c for c in self.snapshot.categories if c.namespace == root.namespace
+            c for c in self.snapshot.categories if c.namespace in installation_namespaces
         ]
         partial = any(c.status != "completed" for c in namespace_categories)
         namespace_warnings = [
-            w for w in self.snapshot.warnings if w.namespace in {None, root.namespace}
+            w
+            for w in self.snapshot.warnings
+            if w.namespace is None or w.namespace in installation_namespaces
         ]
         if partial or namespace_warnings:
             warnings.append(SemanticWarning(code="partial_topology"))

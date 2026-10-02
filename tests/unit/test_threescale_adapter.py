@@ -85,6 +85,25 @@ def test_scoped_namespace_denied_before_runtime():
     assert not runtime.calls
 
 
+def test_primary_namespace_does_not_limit_runtime_discovery():
+    resources = healthy_resources("apim") + [
+        resource
+        for resource in healthy_resources("apicast")
+        if resource["metadata"]["name"].startswith("apicast-")
+    ]
+    adapter, runtime, context = setup(resources, config(("apim", "apicast")))
+    adapter.settings = GatewayDiscoveryConfig(namespace="apim")
+
+    async def run():
+        await adapter.connect(context)
+        result = await adapter.discover_installations(context)
+        assert len(result.installations) == 1
+        assert result.installations[0].namespace == "apim"
+
+    asyncio.run(run())
+    assert runtime.calls[0][1].namespace is None
+
+
 @pytest.mark.parametrize("multiple", [True, False])
 def test_legacy_single_gateway_port_rejects_missing_or_ambiguous(multiple):
     adapter, _, context = setup(
